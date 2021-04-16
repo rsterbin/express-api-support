@@ -1,0 +1,49 @@
+{
+  "name": "system",
+  "title": "System",
+  "description": "Access to simple basic system settings",
+  "spec": {
+    "environment": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_ENVIRONMENT",
+      "description": "The current environment (usually \"development\" or \"production\"; will also try NODE_ENV if not found)"
+    },
+    "siteName": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_SITE_NAME",
+      "description": "The name of the site this API supports"
+    },
+    "apiUrl": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_URL",
+      "description": "The URL of this API (defaults to \"http://localhost:3000\")"
+    },
+    "clientUrl": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_CLIENT_URL",
+      "description": "The URL of the site this API supports (defaults to \"http://localhost:3000\")"
+    },
+    "apiUrlPrefix": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_URL_PREFIX",
+      "description": "The prefix to all API endpoints (defaults to \"/api\")"
+    },
+    "matchApi": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_MATCH_API",
+      "description": "A regular expression that matches URLs that are part of the API itself (defaults to \"^\" + the API URL prefix + \"/\")"
+    },
+    "expressPath": {
+      "required": false,
+      "type": "string",
+      "from_env": "API_EXPRESS_PATH",
+      "description": "The path to express on your filesystem (detected automatically if called from app.js)"
+    }
+  }
+}

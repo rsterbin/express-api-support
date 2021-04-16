@@ -1,0 +1,45 @@
+{
+  "name": "@rsterbin/express-api-support",
+  "version": "1.0.0",
+  "description": "Personal package of all the stuff I reuse when creating small APIs in express",
+  "keywords": [
+    "express",
+    "package",
+    "omnibus",
+    "personal"
+  ],
+  "homepage": "https://github.com/rsterbin/express-api-support",
+  "bugs": {
+    "url": "https://github.com/rsterbin/express-api-support/issues",
+    "email": "rsterbin@gmail.com"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsterbin/express-api-support.git"
+  },
+  "author": "Reha Sterbin <rsterbin@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": ">= 10.0.0"
+  },
+  "engineStrict": true,
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bcrypt": "^5.0.1",
+    "email-validator": "^2.0.4",
+    "express": "~4.16.1",
+    "express-promise-router": "^4.1.0",
+    "handlebars": "^4.7.7",
+    "http-errors": "~1.6.3",
+    "nodemailer": "^6.5.0",
+    "nodemon": "^2.0.7",
+    "pg": "^8.5.1",
+    "pug": "^3.0.2",
+    "uuid": "^8.3.2"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "cors",
+  "title": "CORS Restrictions",
+  "description": "Middleware that rejects requests by origin for the API",
+  "spec": {
+    "allowAll": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "CORS_OVERRIDE_ALLOW_ALL",
+      "description": "Flag to turn off CORS restrictions and allow all requests to pass through"
+    },
+    "allowUrls": {
+      "required": false,
+      "type": "array",
+      "from_env": "CORS_ALLOW_URLS",
+      "description": "A list of URLs that should not have CORS restrictions"
+    },
+    "prodOrigins": {
+      "required": false,
+      "type": "array",
+      "from_env": "CORS_PROD_ORIGINS",
+      "description": "A list of origins used in production"
+    },
+    "devOrigins": {
+      "required": false,
+      "type": "array",
+      "from_env": "CORS_DEV_ORIGINS",
+      "description": "A list of origins used in development"
+    }
+  }
+}

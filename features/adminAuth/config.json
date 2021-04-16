@@ -1,0 +1,87 @@
+{
+  "name": "adminAuth",
+  "title": "Admin Authentication",
+  "description": "Authentication routes and middleware for an admin section within the API",
+  "spec": {
+    "matchAdmin": {
+      "required": false,
+      "type": "string",
+      "from_env": "ADMIN_AUTH_MATCH_API",
+      "description": "A regular expression that matches URLs that are part of the admin section of the API and need protection (defaults to \"^/api/admin\")"
+    },
+    "authMountPoint": {
+      "required": false,
+      "type": "string",
+      "from_env": "ADMIN_AUTH_MOUNT_POINT",
+      "description": "The URL at which the admin auth section has been mounted (defaults to \"/api/admin/auth\")"
+    },
+    "allowAll": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "ADMIN_AUTH_ALLOW_ALL",
+      "description": "Whether to run off restrictions entirely (never use in production!)"
+    },
+    "tablePrefix": {
+      "required": false,
+      "type": "string",
+      "from_env": "ADMIN_AUTH_TABLE_PREFIX",
+      "description": "Prefix used for all admin auth tables"
+    },
+    "sessionLength": {
+      "required": false,
+      "type": "integer",
+      "from_env": "ADMIN_AUTH_SESSION_LENGTH",
+      "description": "Length of the admin sessions, in minutes (defaults to 60)"
+    },
+    "resetTokenLifetime": {
+      "required": false,
+      "type": "integer",
+      "from_env": "ADMIN_AUTH_RESET_TOKEN_LIFETIME",
+      "description": "Lifetime of a reset token, in hours (defaults to 24)"
+    },
+    "clientResetLink": {
+      "required": false,
+      "type": "string",
+      "from_env": "ADMIN_AUTH_CLIENT_RESET_LINK",
+      "description": "The reset page on the client side (e.g., \"/admin/reset-my-password\")"
+    },
+    "resetTokenStyle": {
+      "required": false,
+      "type": "string",
+      "values_allowed": [ "slug", "query" ],
+      "from_env": "ADMIN_AUTH_RESET_TOKEN_STYLE",
+      "description": "The style of the reset link on the client side (\"slug\" to append the token as a slug, or \"query\" to send it in the query string as \"token\")"
+    },
+    "userFields": {
+      "required": false,
+      "type": "method:validateUserFields",
+      "from_env": "ADMIN_AUTH_USER_FIELDS",
+      "parse": "json",
+      "description": "List of fields the admin users should have, other than those required for this feature"
+    },
+    "includeUserRoutes": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "ADMIN_AUTH_INCLUDE_USER_ROUTES",
+      "description": "Flag for whether the user create/edit/update/etc routes should be included"
+    },
+    "allowSessionsListRoute": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "ADMIN_AUTH_ALLOW_SESSIONS_LIST_ROUTE",
+      "description": "Flag to allow a route for showing all active admin sessions"
+    },
+    "allowBootstrapRoute": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "ADMIN_AUTH_ALLOW_BOOTSTRAP_ROUTE",
+      "description": "Flag to allow a route for bootstrapping an admin auth user"
+    },
+    "secretBootstrapPassword": {
+      "required": false,
+      "type": "string",
+      "from_env": "ADMIN_AUTH_SECRET_BOOTSTRAP_PASSWORD",
+      "description": "Secret bootstrap password for use with the bootstrap route"
+    }
+  }
+}

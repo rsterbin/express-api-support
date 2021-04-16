@@ -1,0 +1,13 @@
+{
+  "name": "database",
+  "title": "Database",
+  "description": "Access to a postgres database",
+  "spec": {
+    "url": {
+      "required": true,
+      "type": "string",
+      "from_env": "DATABASE_URL",
+      "description": "Postgres connection URL (e.g. postgres://myuser:1234@127.0.0.1:5432/mydbname)"
+    }
+  }
+}

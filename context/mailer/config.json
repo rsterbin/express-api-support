@@ -1,0 +1,31 @@
+{
+  "name": "mailer",
+  "title": "Mailer",
+  "description": "Ability to send templated email",
+  "spec": {
+    "port": {
+      "required": true,
+      "type": "integer",
+      "from_env": "EMAIL_PORT",
+      "description": "Port the mail transport uses"
+    },
+    "fromDomain": {
+      "required": true,
+      "type": "string",
+      "from_env": "EMAIL_FROM_DOMAIN",
+      "description": "The domain to use for From addresses"
+    },
+    "ignoreTLS": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "EMAIL_IGNORE_TLS",
+      "description": "Flag indicating whether to ignore TLS (boolean)"
+    },
+    "templateDir": {
+      "required": true,
+      "type": "string",
+      "from_env": "EMAIL_TEMPLATE_DIRECTORY",
+      "description": "The directory where email templates can be found"
+    }
+  }
+}

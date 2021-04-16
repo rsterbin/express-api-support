@@ -1,0 +1,5 @@
+{
+  "name": "config",
+  "title": "Configuration",
+  "description": "Access to configuration settings, with type checking and env overrides"
+}

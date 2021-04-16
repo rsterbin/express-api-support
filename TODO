@@ -1,0 +1,6 @@
+
+Stuff that needs doing:
+
+- Script to generate the SQL create statements (admin auth)
+- Script to bootstrap so we don't have to use that hacky route
+

@@ -1,0 +1,31 @@
+{
+  "name": "react",
+  "title": "React Support",
+  "description": "Custom error handler that returns JSON-formatted errors for the API and passes through all paths not found to React's index.html",
+  "spec": {
+    "docIndex": {
+      "required": false,
+      "type": "string",
+      "from_env": "REACT_DOC_INDEX",
+      "description": "The path to the main react html page we want to pass through to if express doesn\"t handle it"
+    },
+    "jsonUrls": {
+      "required": false,
+      "type": "array",
+      "from_env": "REACT_JSON_URLS",
+      "description": "A list of regular expressions matching URLs that should return JSON errors"
+    },
+    "viewUrls": {
+      "required": false,
+      "type": "array",
+      "from_env": "REACT_VIEW_URLS",
+      "description": "A list of regular expressions matching URLs that should return HTML errors"
+    },
+    "message404": {
+      "required": false,
+      "type": "string",
+      "from_env": "REACT_404_MESSAGE",
+      "description": "The message to return on 404 errors"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "crypt",
+  "title": "Encryption",
+  "description": "Access to simple encryt, decrypt and match functions",
+  "spec": {
+    "bcryptSalt": {
+      "required": true,
+      "type": "integer",
+      "from_env": "BCRYPT_SALT",
+      "description": "Encryption salt for bcrypt (should be an integer)"
+    }
+  }
+}
