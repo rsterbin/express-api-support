@@ -99,7 +99,10 @@ class ApiSupport {
         }
 
         // Any leftover options should be considered application config and accessible as sent
-        splitOptions = { ...splitOptions, options };
+        for (const k in options) {
+            splitOptions[k] = options[k];
+        }
+
         this.context.config.invoke(configSpec, splitOptions);
     }
 
