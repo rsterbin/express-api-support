@@ -41,8 +41,8 @@ Grab the routers and mount them:
 
 ```js
 const supportRouters = support.getRouters(app);
-apiRouter.use('/admin/auth', supportRouters.adminAuth.auth);
-apiRouter.use('/admin/user', supportRouters.adminAuth.user);
+myApiRouter.use('/admin/auth', supportRouters.adminAuth.auth);
+myApiRouter.use('/admin/user', supportRouters.adminAuth.user);
 app.use('/api/v1', myApiRouter);
 ```
 
