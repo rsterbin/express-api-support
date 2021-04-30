@@ -8,6 +8,7 @@ const splitReactFromApi = (context) => {
     const jsonUrls = context.config.get('feature.react.jsonUrls', [ '^' + apiUrlPrefix + '/' ]);
     const viewUrls = context.config.get('feature.react.viewUrls', []);
     const msg404 = context.config.get('feature.react.message404', 'Endpoint not found');
+    const logErrors = context.config.get('feature.react.consoleLogErrors', true);
     const expressPath = context.system.setting('expressPath');
     const reactPath = context.config.get('feature.react.docIndex', expressPath + '/public/index.html');
 
@@ -36,7 +37,9 @@ const splitReactFromApi = (context) => {
 
         } else if (handleWith === 'json') {
             res.status(err.status || 500);
-            console.log(err);
+            if (logErrors) {
+                console.log(err);
+            }
             let msg = err.status === 404 ? msg404 : err.message;
             res.json({ code: 'UNEXPECTED', msg: msg, original: req.originalUrl });
 

@@ -24,7 +24,7 @@ class SystemContext extends ContextBase {
         if (this.settings === null) {
 
             // Parent won't be set in the constructor, so detect here
-            if (this.parent.calledFrom.match('\/app.js$')) {
+            if (this.parent.calledFrom.match('\/app\.js$') || this.parent.calledFrom.match('\/test\/[^/]+\.js$')) {
                 this.defaults.expressPath = path.dirname(this.parent.calledFrom);
             }
 
