@@ -1,9 +1,9 @@
 
 class ContextBase {
 
-    constructor() {
-        this.configSpec = {};
-    }
+  constructor() {
+    this.configSpec = {};
+  }
 
 }
 

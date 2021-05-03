@@ -6,15 +6,15 @@ const featureConfig = require('./config.json');
 
 class FeatureCors extends FeatureBase {
 
-	constructor () {
-        super();
-        this.configSpec = featureConfig.spec;
-        this.name = featureConfig.name;
-	}
+  constructor () {
+    super();
+    this.configSpec = featureConfig.spec;
+    this.name = featureConfig.name;
+  }
 
-    middleware(app) {
-        app.use(restrictions(this.parent.context));
-    }
+  middleware(app) {
+    app.use(restrictions(this.parent.context));
+  }
 
 }
 

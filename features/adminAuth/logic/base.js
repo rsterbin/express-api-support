@@ -1,12 +1,12 @@
 
 class LogicBase {
 
-    init(context) {
-        this.context = context;
-        this.setup();
-    }
+  init(context) {
+    this.context = context;
+    this.setup();
+  }
 
-    setup() {}
+  setup() {}
 }
 
 module.exports = LogicBase;

@@ -1,19 +1,19 @@
 
 class FeatureBase {
 
-    constructor() {
-        this.requiredContext = [];
-        this.configSpec = {};
-        this.name = null;
-    }
+  constructor() {
+    this.requiredContext = [];
+    this.configSpec = {};
+    this.name = null;
+  }
 
-    middleware(app) {}
+  middleware(app) {} // eslint-disable-line no-unused-vars
 
-    getRouters(app) {
-        return null;
-    }
+  getRouters(app) { // eslint-disable-line no-unused-vars
+    return null;
+  }
 
-    handlers(app) {}
+  handlers(app) {} // eslint-disable-line no-unused-vars
 
 }
 

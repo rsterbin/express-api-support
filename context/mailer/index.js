@@ -9,96 +9,96 @@ const contextConfig = require('./config.json');
 
 class MailerContext extends ContextBase {
 
-	constructor () {
-        super();
-        this.configSpec = contextConfig.spec;
-        this.name = contextConfig.name;
-        this.transport = null;
-        this.MailerError = class MailerError extends Error {
-            constructor(message, error) {
-                super(message);
-                console.log('got error', error);
-                this.name = "MailerError";
-                this.prevErr = error;
-            }
-        };
-	}
+  constructor () {
+    super();
+    this.configSpec = contextConfig.spec;
+    this.name = contextConfig.name;
+    this.transport = null;
+    this.MailerError = class MailerError extends Error {
+      constructor(message, error) {
+        super(message);
+        console.log('got error', error);
+        this.name = "MailerError";
+        this.prevErr = error;
+      }
+    };
+  }
 
-	getTransport () {
-        if (this.transport === null) {
-            this.transport =  nodemailer.createTransport({
-                port: this.parent.context.config.get('context.mailer.port'),
-                ignoreTLS: this.parent.context.config.get('context.mailer.ignoreTLS', false)
-            });
-        }
-        return this.transport;
-	}
-
-    loadTemplate (name) {
-        if (!(name in this.templates)) {
-            const basepath = this.parent.context.config.get('context.mailer.templateDir');
-            const infopath = path.join(basepath, name, 'info.json');
-            const htmlpath = path.join(basepath, name, 'html.handlebars');
-            const textpath = path.join(basepath, name, 'text.handlebars');
-            if (!fs.existsSync(infopath)) {
-                throw new this.MailerError('No such template: ' + name);
-            }
-            const info = require(infopath);
-            if (fs.existsSync(htmlpath)) {
-                const source = fs.readFileSync(htmlpath, "utf8");
-                try {
-                    info.html = handlebars.compile(source);
-                } catch (e) {
-                    throw new this.MailerError('Cannot compile template body (html)', e);
-                }
-            }
-            if (fs.existsSync(textpath)) {
-                const source = fs.readFileSync(textpath, "utf8");
-                try {
-                    info.text = handlebars.compile(source);
-                } catch (e) {
-                    throw new this.MailerError('Cannot compile template body (text)', e);
-                }
-            }
-            try {
-                info.subject = handlebars.compile(info.subject || '');
-            } catch (e) {
-                throw new this.MailerError('Cannot compile template subject', e);
-            }
-        }
-        return this.templates[name];
+  getTransport () {
+    if (this.transport === null) {
+      this.transport =  nodemailer.createTransport({
+        port: this.parent.context.config.get('context.mailer.port'),
+        ignoreTLS: this.parent.context.config.get('context.mailer.ignoreTLS', false)
+      });
     }
+    return this.transport;
+  }
 
-    async send (to, tpl, mvars = {}) {
+  loadTemplate (name) {
+    if (!(name in this.templates)) {
+      const basepath = this.parent.context.config.get('context.mailer.templateDir');
+      const infopath = path.join(basepath, name, 'info.json');
+      const htmlpath = path.join(basepath, name, 'html.handlebars');
+      const textpath = path.join(basepath, name, 'text.handlebars');
+      if (!fs.existsSync(infopath)) {
+        throw new this.MailerError('No such template: ' + name);
+      }
+      const info = require(infopath);
+      if (fs.existsSync(htmlpath)) {
+        const source = fs.readFileSync(htmlpath, "utf8");
         try {
-            const template = this.loadTemplate(tpl);
+          info.html = handlebars.compile(source);
         } catch (e) {
-            return e;
+          throw new this.MailerError('Cannot compile template body (html)', e);
         }
-        const payload = { ...mvars };
-        if (this.parent.context.client) {
-            payload = { ...payload, client: this.parent.context.client.mailerPayload() };
-        }
-        const from = template.from + '@' + this.parent.context.config.get('context.mailer.fromDomain');
-        const msg = {
-            from: from,
-            to: to,
-            subject: template.subject(payload)
-        };
-        if (template.html) {
-            msg.html = template.html(payload);
-        }
-        if (template.text) {
-            msg.text = template.text(payload);
-        }
+      }
+      if (fs.existsSync(textpath)) {
+        const source = fs.readFileSync(textpath, "utf8");
         try {
-            const info = await this.getTransport().sendMail(msg);
-            console.log('Mailer:send:info', info);
+          info.text = handlebars.compile(source);
         } catch (e) {
-            return new this.MailerError('Mail send failed', e);
+          throw new this.MailerError('Cannot compile template body (text)', e);
         }
-		return true;
+      }
+      try {
+        info.subject = handlebars.compile(info.subject || '');
+      } catch (e) {
+        throw new this.MailerError('Cannot compile template subject', e);
+      }
     }
+    return this.templates[name];
+  }
+
+  async send (to, tpl, mvars = {}) {
+    try {
+      const template = this.loadTemplate(tpl);
+    } catch (e) {
+      return e;
+    }
+    const payload = { ...mvars };
+    if (this.parent.context.client) {
+      payload = { ...payload, client: this.parent.context.client.mailerPayload() };
+    }
+    const from = template.from + '@' + this.parent.context.config.get('context.mailer.fromDomain');
+    const msg = {
+      from: from,
+      to: to,
+      subject: template.subject(payload)
+    };
+    if (template.html) {
+      msg.html = template.html(payload);
+    }
+    if (template.text) {
+      msg.text = template.text(payload);
+    }
+    try {
+      const info = await this.getTransport().sendMail(msg);
+      console.log('Mailer:send:info', info);
+    } catch (e) {
+      return new this.MailerError('Mail send failed', e);
+    }
+    return true;
+  }
 
 }
 
