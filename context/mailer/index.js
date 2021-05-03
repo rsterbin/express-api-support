@@ -1,9 +1,9 @@
 const ContextBase = require('../base');
 
 const nodemailer = require('nodemailer');
-const handlebars = require("handlebars");
-const fs = require("fs");
-const path = require("path");
+const handlebars = require('handlebars');
+const fs = require('fs');
+const path = require('path');
 
 const contextConfig = require('./config.json');
 
@@ -18,7 +18,7 @@ class MailerContext extends ContextBase {
       constructor(message, error) {
         super(message);
         console.log('got error', error);
-        this.name = "MailerError";
+        this.name = 'MailerError';
         this.prevErr = error;
       }
     };
@@ -45,7 +45,7 @@ class MailerContext extends ContextBase {
       }
       const info = require(infopath);
       if (fs.existsSync(htmlpath)) {
-        const source = fs.readFileSync(htmlpath, "utf8");
+        const source = fs.readFileSync(htmlpath, 'utf8');
         try {
           info.html = handlebars.compile(source);
         } catch (e) {
@@ -53,7 +53,7 @@ class MailerContext extends ContextBase {
         }
       }
       if (fs.existsSync(textpath)) {
-        const source = fs.readFileSync(textpath, "utf8");
+        const source = fs.readFileSync(textpath, 'utf8');
         try {
           info.text = handlebars.compile(source);
         } catch (e) {
@@ -70,12 +70,13 @@ class MailerContext extends ContextBase {
   }
 
   async send (to, tpl, mvars = {}) {
+    let template = null;
     try {
-      const template = this.loadTemplate(tpl);
+      template = this.loadTemplate(tpl);
     } catch (e) {
       return e;
     }
-    const payload = { ...mvars };
+    let payload = { ...mvars };
     if (this.parent.context.client) {
       payload = { ...payload, client: this.parent.context.client.mailerPayload() };
     }

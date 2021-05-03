@@ -62,7 +62,7 @@ class ConfigContext extends ContextBase {
         }
       }
 
-    // Otherwise, validate as directed
+      // Otherwise, validate as directed
     } else {
       if (found === undefined) {
         if ('required' in spec && spec.required) {
@@ -93,14 +93,18 @@ class ConfigContext extends ContextBase {
           return false;
         }
         this._throwBootstrappingError('wrongtype', fullKey, spec);
+        break;
       case 'array':
+        // falls through
       case 'object':
+        // falls through
       case 'json':
         try {
           return JSON.parse(found);
         } catch (e) {
           this._throwBootstrappingError('wrongtype', fullKey, spec);
         }
+        break;
       default:
         return found;
     }
@@ -167,7 +171,7 @@ class ConfigContext extends ContextBase {
       generic = 'Config value "' + key + '" has a problem';
     }
     if (spec.description) {
-      console.log(generic + "\n  - Key Description: " + spec.description);
+      console.log(generic + '\n  - Key Description: ' + spec.description);
     } else {
       console.log(generic);
     }
@@ -199,7 +203,7 @@ class ConfigContext extends ContextBase {
       this.bootstrap();
     }
     const search = key.split('.');
-    return this._finder(search, this.vals, fallback);;
+    return this._finder(search, this.vals, fallback);
   }
 
   _finder(search = [], area = {}, fallback = null) {

@@ -1,7 +1,7 @@
 const ContextBase = require('../base');
 
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const contextConfig = require('./config.json');
@@ -27,7 +27,7 @@ class CryptContext extends ContextBase {
   }
 
   createHex () {
-    return crypto.randomBytes(32).toString("hex");
+    return crypto.randomBytes(32).toString('hex');
   }
 
 }
