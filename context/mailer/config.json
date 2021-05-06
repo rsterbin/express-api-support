@@ -19,7 +19,8 @@
       "required": false,
       "type": "boolean",
       "from_env": "EMAIL_IGNORE_TLS",
-      "description": "Flag indicating whether to ignore TLS (boolean)"
+      "description": "Flag indicating whether to ignore TLS",
+      "default": false
     },
     "templateDir": {
       "required": true,

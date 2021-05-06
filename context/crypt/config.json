@@ -7,7 +7,7 @@
       "required": true,
       "type": "integer",
       "from_env": "BCRYPT_SALT",
-      "description": "Encryption salt for bcrypt (should be an integer)"
+      "description": "Encryption salt for bcrypt"
     }
   }
 }

@@ -16,7 +16,7 @@ class DatabaseContext extends ContextBase {
   getPool() {
     if (this.pool === null) {
       this.pool = new Pool({
-        connectionString: this.parent.context.config.get('context.database.url')
+        connectionString: this.getConfigValue('url')
       });
     }
     return this.pool;

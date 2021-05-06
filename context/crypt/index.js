@@ -15,7 +15,7 @@ class CryptContext extends ContextBase {
   }
 
   async hash(clear) {
-    return await bcrypt.hash(clear, Number(this.parent.config.get('bcryptSalt')));
+    return await bcrypt.hash(clear, Number(this.getConfigValue('bcryptSalt')));
   }
 
   async verify(test, hashed) {

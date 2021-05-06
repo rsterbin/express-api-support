@@ -27,8 +27,8 @@ class MailerContext extends ContextBase {
   getTransport () {
     if (this.transport === null) {
       this.transport =  nodemailer.createTransport({
-        port: this.parent.context.config.get('context.mailer.port'),
-        ignoreTLS: this.parent.context.config.get('context.mailer.ignoreTLS', false)
+        port: this.getConfigValue('port'),
+        ignoreTLS: this.getConfigValue('ignoreTLS')
       });
     }
     return this.transport;
@@ -36,7 +36,7 @@ class MailerContext extends ContextBase {
 
   loadTemplate (name) {
     if (!(name in this.templates)) {
-      const basepath = this.parent.context.config.get('context.mailer.templateDir');
+      const basepath = this.getConfigValue('templateDir');
       const infopath = path.join(basepath, name, 'info.json');
       const htmlpath = path.join(basepath, name, 'html.handlebars');
       const textpath = path.join(basepath, name, 'text.handlebars');
@@ -80,7 +80,7 @@ class MailerContext extends ContextBase {
     if (this.parent.context.client) {
       payload = { ...payload, client: this.parent.context.client.mailerPayload() };
     }
-    const from = template.from + '@' + this.parent.context.config.get('context.mailer.fromDomain');
+    const from = template.from + '@' + this.getConfigValue('fromDomain');
     const msg = {
       from: from,
       to: to,
