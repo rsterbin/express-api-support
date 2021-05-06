@@ -33,11 +33,9 @@ const argsParser = yargs
   .demandOption('f', 'You must invoke this script with at least one feature');
 
 const argv = argsParser.argv;
-// console.log(argv);
 
 // Fire up the support object
 support.init(argv.f, argv.c);
-// console.log(support.reportFeatureSettings());
 
 // generate the SQL
 const sql = support.generateSql();
