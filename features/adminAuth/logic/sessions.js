@@ -4,10 +4,10 @@ class AdminAuthLogicSessions extends LogicBase {
   constructor() { super(); }
 
   setup() {
-    const prefix = this.context.config.get('feature.adminAuth.tablePrefix', '');
+    const prefix = this.feature.getConfigValue('tablePrefix');
     this.tableSessions = prefix + 'admin_sessions';
     this.tableUsers = prefix + 'admin_users';
-    this.sessionLength = this.context.config.get('feature.adminAuth.sessionLength', 60) + ' minutes';
+    this.sessionLength = this.feature.getConfigValue('sessionLength') + ' minutes';
   }
 
   async start (user_id) {

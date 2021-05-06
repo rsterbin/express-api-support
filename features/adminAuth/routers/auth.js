@@ -3,9 +3,9 @@ const Router = require('express-promise-router');
 const logic = require('../logic');
 const { simpleOutput } = require('../../../utils/routeHelpers');
 
-const getAuthRouter = (context) => {
+const getAuthRouter = (feature) => {
 
-  logic.init(context);
+  logic.init(feature);
 
   const router = new Router();
 
@@ -95,14 +95,14 @@ const getAuthRouter = (context) => {
     }
   });
 
-  if (context.config.get('feature.adminAuth.allowSessionsListRoute')) {
+  if (feature.getConfigValue('allowSessionsListRoute')) {
     // admin/user/sessions POST: list all active sessions
     router.post('/sessions', async function(req, res, next) {
       simpleOutput(await logic.getAllActiveSessions(), res);
     });
   }
 
-  if (context.config.get('feature.adminAuth.allowBootstrapRoute')) {
+  if (feature.getConfigValue('allowBootstrapRoute')) {
     // /bootstrap POST: If we have NO admin users, this can be used (once) to bring up a system user using a very stupid plain text secret code check
     router.post('/bootstrap', async function(req, res, next) {
       if (typeof(req.body) !== 'object') {

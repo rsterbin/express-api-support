@@ -18,7 +18,24 @@ class FeatureReact extends FeatureBase {
     app.use(function(req, res, next) {
       next(createError(404));
     });
-    app.use(handler(this.parent.context));
+    app.use(handler(this));
+  }
+
+  getCustomDefault(name) {
+
+    // doc index
+    if (name === 'docIndex') {
+      const expressPath = this.getSystemValue('expressPath');
+      return expressPath + '/public/index.html';
+    }
+
+    // json URLs
+    if (name === 'jsonUrls') {
+      const apiUrlPrefix = this.getSystemValue('apiUrlPrefix');
+      return [ '^' + apiUrlPrefix + '/' ];
+    }
+
+    return undefined;
   }
 
 }

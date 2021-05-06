@@ -1,26 +1,11 @@
 
-const requireCorsHeaders = (context) => {
+const requireCorsHeaders = (feature) => {
 
-  const allowAll = context.config.get('feature.cors.allowAll', false);
-  const env = context.system.setting('environment');
-  const apiUrlPrefix = context.system.setting('apiUrlPrefix');
-
-  let d = [];
-  const apiUrl = context.system.setting('apiUrl');
-  if (apiUrl) {
-    d.push(apiUrl);
-  }
-  const clientUrl = context.system.setting('clientUrl');
-  if (clientUrl) {
-    d.push(clientUrl);
-  }
-
-  const prodOrigins = context.config.get('feature.cors.prodOrigins',
-    (env === 'development') ? [] : d);
-  const devOrigins = context.config.get('feature.cors.devOrigins',
-    (env === 'development') ? d : []);
-  const restrictUrls = context.config.get('feature.cors.restrictUrls', []);
-  restrictUrls.push('^' + apiUrlPrefix + '/');
+  const env = feature.getSystemValue('environment');
+  const allowAll = feature.getConfigValue('allowAll');
+  const prodOrigins = feature.getConfigValue('prodOrigins');
+  const devOrigins = feature.getConfigValue('devOrigins');
+  const restrictUrls = feature.getConfigValue('restrictUrls');
 
   const middleware = (req, res, next) => {
 

@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+
+const yargs = require('yargs');
+const fs = require('fs');
+
+const PKG = require('../package.json');
+const support = require('../index');
+const featureNames = support.featureNames();
+
+// Configure
+const argsParser = yargs
+  .alias('v', 'version')
+  .version(PKG.version)
+  .describe('v', 'show version information')
+
+  .alias('h', 'help')
+
+  .option('f', {
+    alias: 'feature',
+    description: 'a feature name to include (multiple allowed)',
+    array: true,
+    type: 'string',
+    choices: featureNames
+  })
+
+  .option('c', {
+    alias: 'config-file',
+    description: 'path to a json file containing the config options you want to use',
+    type: 'string',
+    coerce: (arg) => arg ? JSON.parse(fs.readFileSync(arg, 'utf8')) : {}
+  })
+
+  .demandOption('f', 'You must invoke this script with at least one feature');
+
+const argv = argsParser.argv;
+// console.log(argv);
+
+// Fire up the support object
+support.init(argv.f, argv.c);
+// console.log(support.reportFeatureSettings());
+
+// generate the SQL
+const sql = support.generateSql();
+
+// print it out
+process.stdout.write(sql + '\n');

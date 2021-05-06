@@ -4,10 +4,12 @@ class AdminAuthLogicReset extends LogicBase {
   constructor() { super(); }
 
   setup() {
-    const prefix = this.context.config.get('feature.adminAuth.tablePrefix', '');
+    const prefix = this.feature.getConfigValue('tablePrefix');
     this.tableTokens = prefix + 'admin_reset_tokens';
     this.tableUsers = prefix + 'admin_users';
-    this.tokenLifetime = this.context.config.get('feature.adminAuth.resetTokenLifetime', 24) + ' hours';
+    this.tokenLifetime = this.feature.getConfigValue('resetTokenLifetime') + ' hours';
+    this.resetLink = this.feature.getSystemValue('clientUrl') + this.feature.getConfigValue('clientResetLink');
+    this.tokenStyle = this.feature.getConfigValue('resetTokenStyle');
   }
 
   async clearInactive() {
@@ -54,13 +56,11 @@ class AdminAuthLogicReset extends LogicBase {
       return user;
     }
 
-    let link = this.context.system.setting('clientUrl') +
-       this.context.config.get('feature.adminAuth.clientResetLink', '/reset');
+    let link = this.resetLink;
 
     // TODO: JSON Web Tokens? need to pass email address alongside token
 
-    const tokenStyle = this.context.config.get('feature.adminAuth.resetTokenStyle', 'query');
-    if (tokenStyle == 'slug') {
+    if (this.tokenStyle == 'slug') {
       link += '/' + token;
     } else {
       link += '?token=' + token;

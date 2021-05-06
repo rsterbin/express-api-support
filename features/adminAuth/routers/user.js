@@ -3,9 +3,9 @@ const Router = require('express-promise-router');
 const logic = require('../logic');
 const { simpleOutput } = require('../../../utils/routeHelpers');
 
-const getUserRouter = (context) => {
+const getUserRouter = (feature) => {
 
-  logic.init(context);
+  logic.init(feature);
 
   const router = new Router();
 

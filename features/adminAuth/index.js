@@ -17,6 +17,19 @@ class FeatureAdminAuth extends Feature {
     this.name = featureConfig.name;
   }
 
+  getCustomDefault(name) {
+    if (name === 'matchAdmin' || name === 'mountPoint') {
+      const apiUrlPrefix = this.getSystemValue('apiUrlPrefix');
+      if (name === 'matchAdmin') {
+        return '^' + apiUrlPrefix + '/admin/';
+      }
+      if (name === 'mountPoint') {
+        return apiUrlPrefix + '/admin/auth';
+      }
+    }
+    return undefined;
+  }
+
   validateUserFields(found) {
     // e.g., [{ key: 'short', column: 'short_name', pgtype: 'text' }]
     if (!Array.isArray(found)) {
@@ -43,13 +56,25 @@ class FeatureAdminAuth extends Feature {
 
   getRouters() {
     return {
-      auth: authRouter(this.parent.context),
-      user: userRouter(this.parent.context)
+      auth: authRouter(this),
+      user: userRouter(this)
     };
   }
 
   middleware(app) {
-    app.use(restrictions(this.parent.context));
+    app.use(restrictions(this));
+  }
+
+  generateSql() {
+    const template = this.getSqlTemplate(__dirname);
+    if (template === null) {
+      return null;
+    }
+    const payload = {
+      prefix: this.getConfigValue('tablePrefix'),
+      userFields: this.getConfigValue('userFields'),
+    };
+    return template(payload);
   }
 
 }

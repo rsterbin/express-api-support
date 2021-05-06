@@ -1,15 +1,12 @@
 
-const splitReactFromApi = (context) => {
+const splitReactFromApi = (feature) => {
 
-  const env = context.system.setting('environment');
-  const apiUrlPrefix = context.system.setting('apiUrlPrefix');
-
-  const jsonUrls = context.config.get('feature.react.jsonUrls', [ '^' + apiUrlPrefix + '/' ]);
-  const viewUrls = context.config.get('feature.react.viewUrls', []);
-  const msg404 = context.config.get('feature.react.message404', 'Endpoint not found');
-  const logErrors = context.config.get('feature.react.consoleLogErrors', true);
-  const expressPath = context.system.setting('expressPath');
-  const reactPath = context.config.get('feature.react.docIndex', expressPath + '/public/index.html');
+  const env = feature.getSystemValue('environment');
+  const jsonUrls = feature.getConfigValue('jsonUrls');
+  const viewUrls = feature.getConfigValue('viewUrls');
+  const msg404 = feature.getConfigValue('message404');
+  const logErrors = feature.getConfigValue('consoleLogErrors');
+  const reactPath = feature.getConfigValue('docIndex');
 
   // If we can't get reactPath, issue a warning -- it's not critical, but
   // this won't work as expected because we don't have a hardcoded doc index

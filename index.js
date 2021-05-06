@@ -26,6 +26,10 @@ class ApiSupport {
     this.calledFrom = CALLED_FROM;
   }
 
+  featureNames() {
+    return Object.keys(FEATURES).sort();
+  }
+
   init(features = [], options = {}, addSpec = {}) {
     const requiredContext = {
       system: true,
@@ -106,6 +110,17 @@ class ApiSupport {
     this.context.config.invoke(configSpec, splitOptions);
   }
 
+  reportFeatureSettings() {
+    const settings = {};
+    for (const feature of this.features) {
+      settings[feature.name] = {};
+      for (const name in feature.configSpec) {
+        settings[feature.name][name] = feature.getConfigValue(name);
+      }
+    }
+    return settings;
+  }
+
   middleware(app) {
     for (const feature of this.features) {
       feature.middleware(app);
@@ -131,6 +146,17 @@ class ApiSupport {
 
   getContext(cxt) {
     return this.context[cxt];
+  }
+
+  generateSql() {
+    let scripts = [];
+    for (const feature of this.features) {
+      const sql = feature.generateSql();
+      if (sql !== null) {
+        scripts.push(sql);
+      }
+    }
+    return scripts.join('\n\n');
   }
 
 }

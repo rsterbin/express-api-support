@@ -1,8 +1,9 @@
 
 class LogicBase {
 
-  init(context) {
-    this.context = context;
+  init(feature) {
+    this.feature = feature;
+    this.context = feature.parent.context;
     this.setup();
   }
 

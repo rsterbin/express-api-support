@@ -16,10 +16,10 @@ class AdminAuthLogic {
     return submodule;
   }
 
-  init(context) {
-    this.sessions.init(context);
-    this.reset.init(context);
-    this.users.init(context);
+  init(feature) {
+    this.sessions.init(feature);
+    this.reset.init(feature);
+    this.users.init(feature);
   }
 
   // user management
@@ -116,7 +116,7 @@ class AdminAuthLogic {
     if (all.data.users.length > 0) {
       return { ok: false, data: { status: 409, code: 'CANNOT_BOOTSTRAP', msg: 'You cannot bootstrap the admin when there are already users' } };
     }
-    const secretCode = this.context.config.get('feature.adminAuth.secretBootstrapPassword', '');
+    const secretCode = this.feature.getConfigValue('secretBootstrapPassword');
     if (secretCode) {
       if (!('secretCode' in data) || data.secretCode !== secretCode) {
         return { ok: false, data: { status: 403, code: 'CANNOT_BOOTSTRAP', msg: 'You cannot bootstrap without the secret code' } };

@@ -7,31 +7,38 @@
       "required": false,
       "type": "string",
       "from_env": "REACT_DOC_INDEX",
-      "description": "The path to the main react html page we want to pass through to if express doesn\"t handle it"
+      "description": "The path to the main react html page we want to pass through to if express doesn\"t handle it",
+      "default_help": "the system setting \"expressPath\" followed by \"/public/index.html\"",
+      "default":""
     },
     "jsonUrls": {
       "required": false,
       "type": "array",
       "from_env": "REACT_JSON_URLS",
-      "description": "A list of regular expressions matching URLs that should return JSON errors"
+      "description": "A list of regular expressions matching URLs that should return JSON errors",
+      "default_help": "a regex matching the system setting \"apiUrlPrefix\"",
+      "default": []
     },
     "viewUrls": {
       "required": false,
       "type": "array",
       "from_env": "REACT_VIEW_URLS",
-      "description": "A list of regular expressions matching URLs that should return HTML errors"
+      "description": "A list of regular expressions matching URLs that should return HTML errors",
+      "default": []
     },
     "message404": {
       "required": false,
       "type": "string",
       "from_env": "REACT_404_MESSAGE",
-      "description": "The message to return on 404 errors"
+      "description": "The message to return on 404 errors",
+      "default": "Endpoint not found"
     },
     "consoleLogErrors": {
       "required": false,
       "type": "boolean",
       "from_env": "REACT_CONSOLE_LOG_ERRORS",
-      "description": "Whether to console-log errors before returning (defaults to true)"
+      "description": "Whether to console-log errors before returning",
+      "default": true
     }
   }
 }

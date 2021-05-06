@@ -2,18 +2,13 @@ const emailValidator = require('email-validator');
 
 const LogicBase = require('./base'); 
 
-const DEFAULT_USER_FIELDS = [
-  { key: 'short', column: 'short_name', pgtype: 'text' },
-  { key: 'full', column: 'full_name', pgtype: 'text' },
-];
-
 class AdminAuthLogicUsers extends LogicBase {
   constructor() { super(); }
 
   setup() {
-    const prefix = this.context.config.get('feature.adminAuth.tablePrefix', '');
+    const prefix = this.feature.getConfigValue('tablePrefix');
     this.tableUsers = prefix + 'admin_users';
-    this.userFields = this.context.config.get('feature.adminAuth.userFields', DEFAULT_USER_FIELDS);
+    this.userFields = this.feature.getConfigValue('userFields');
   }
 
   async create (email, password, data = {}) {

@@ -1,15 +1,14 @@
 
 const logic = require('../logic');
 
-const requireAdminAuth = (context) => {
+const requireAdminAuth = (feature) => {
 
-  logic.init(context);
+  logic.init(feature);
 
-  const allowAll = context.config.get('feature.adminAuth.allowAll', false);
-  const apiUrlPrefix = context.system.setting('apiUrlPrefix');
-  const matchAdmin = context.config.get('feature.adminAuth.matchAdmin', '^' + apiUrlPrefix + '/admin/');
-  const mountPoint = context.config.get('feature.adminAuth.authMountPoint', apiUrlPrefix + '/admin/auth');
-  const usesBootstrap = context.config.get('feature.adminAuth.allowBootstrapRoute', false);
+  const allowAll = feature.getConfigValue('allowAll');
+  const matchAdmin = feature.getConfigValue('matchAdmin');
+  const mountPoint = feature.getConfigValue('authMountPoint');
+  const usesBootstrap = feature.getConfigValue('allowBootstrapRoute');
 
   const middleware = async (req, res, next) => {
 

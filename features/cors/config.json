@@ -7,25 +7,32 @@
       "required": false,
       "type": "boolean",
       "from_env": "CORS_OVERRIDE_ALLOW_ALL",
-      "description": "Flag to turn off CORS restrictions and allow all requests to pass through"
+      "description": "Flag to turn off CORS restrictions and allow all requests to pass through",
+      "default": false
     },
     "allowUrls": {
       "required": false,
       "type": "array",
       "from_env": "CORS_ALLOW_URLS",
-      "description": "A list of URLs that should not have CORS restrictions"
+      "description": "A list of URLs that should not have CORS restrictions",
+      "default_help": "a regex matching the system setting \"apiUrlPrefix\"",
+      "default": []
     },
     "prodOrigins": {
       "required": false,
       "type": "array",
       "from_env": "CORS_PROD_ORIGINS",
-      "description": "A list of origins used in production"
+      "description": "A list of origins used in production",
+      "default_help": "when in production, the system settings \"apiUrl\" and \"clientUrl\"; otherwise blank",
+      "default": []
     },
     "devOrigins": {
       "required": false,
       "type": "array",
       "from_env": "CORS_DEV_ORIGINS",
-      "description": "A list of origins used in development"
+      "description": "A list of origins used in development",
+      "default_help": "when in development, the system settings \"apiUrl\" and \"clientUrl\"; otherwise blank",
+      "default": []
     }
   }
 }
