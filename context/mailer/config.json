@@ -3,17 +3,25 @@
   "title": "Mailer",
   "description": "Ability to send templated email",
   "spec": {
+    "smtpUrl": {
+      "required": false,
+      "type": "string",
+      "from_env": "EMAIL_SMTP_URL",
+      "description": "URL with \"smtp:\" or \"smtps:\" as the protocol (overrides other connections options)",
+      "default": 1025
+    },
+    "host": {
+      "required": false,
+      "type": "string",
+      "from_env": "EMAIL_HOST",
+      "description": "Hostname, or IP address if not public, the mail transport uses"
+    },
     "port": {
-      "required": true,
+      "required": false,
       "type": "integer",
       "from_env": "EMAIL_PORT",
-      "description": "Port the mail transport uses"
-    },
-    "fromDomain": {
-      "required": true,
-      "type": "string",
-      "from_env": "EMAIL_FROM_DOMAIN",
-      "description": "The domain to use for From addresses"
+      "description": "Port the mail transport uses",
+      "default": 1025
     },
     "ignoreTLS": {
       "required": false,
@@ -21,6 +29,13 @@
       "from_env": "EMAIL_IGNORE_TLS",
       "description": "Flag indicating whether to ignore TLS",
       "default": false
+    },
+    "fromDomain": {
+      "required": false,
+      "type": "string",
+      "from_env": "EMAIL_FROM_DOMAIN",
+      "description": "The domain to use for From addresses",
+      "fromDomain": "example.com"
     },
     "templateDir": {
       "required": true,

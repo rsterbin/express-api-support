@@ -4,10 +4,11 @@
   "description": "Access to simple encryt, decrypt and match functions",
   "spec": {
     "bcryptSalt": {
-      "required": true,
+      "required": false,
       "type": "integer",
       "from_env": "BCRYPT_SALT",
-      "description": "Encryption salt for bcrypt"
+      "description": "Encryption salt for bcrypt",
+      "default": 10
     }
   }
 }

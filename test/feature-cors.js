@@ -6,7 +6,11 @@ const support = require('../index');
 
 describe('CORS middleware restrictions', () => {
 
-  it('should reject requests with no origin header', (done) => {
+  afterEach(async function () {
+    await support.destroy();
+  });
+
+  it('should reject requests with no origin header', async function () {
 
     const app = express();
     support.init(['cors']);
@@ -16,20 +20,18 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .expect(403)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
-        chai.expect(res.body.msg).to.be.eql('Access is restricted');
-        chai.expect(res.body.origin).to.be.eql(undefined);
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').send({});
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body).to.not.have.property('origin');
+    chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
+    chai.expect(res.body.msg).to.be.eql('Access is restricted');
 
   });
 
-  it('should reject requests with the wrong origin header', (done) => {
+  it('should reject requests with the wrong origin header', async function () {
 
     const app = express();
     support.init(['cors']);
@@ -39,21 +41,19 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'http://www.example.com')
-      .expect(403)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
-        chai.expect(res.body.msg).to.be.eql('Access is restricted');
-        chai.expect(res.body.origin).to.be.eql('http://www.example.com');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'http://www.example.com').send({});
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body).to.have.property('origin');
+    chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
+    chai.expect(res.body.msg).to.be.eql('Access is restricted');
+    chai.expect(res.body.origin).to.be.eql('http://www.example.com');
 
   });
 
-  it('should accept requests with the right origin header', (done) => {
+  it('should accept requests with the right origin header', async function () {
 
     const app = express();
     support.init(['cors']);
@@ -63,20 +63,17 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'http://localhost:3000')
-      .expect(200)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('SUCCESS');
-        chai.expect(res.body.msg).to.be.eql('This route does nothing');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'http://localhost:3000').send({});
+
+    chai.expect(res.status).to.be.eql(200);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.code).to.be.eql('SUCCESS');
+    chai.expect(res.body.msg).to.be.eql('This route does nothing');
 
   });
 
-  it('should reject requests with the wrong origin header when allowed origins are configured', (done) => {
+  it('should reject requests with the wrong origin header when allowed origins are configured', async function () {
 
     const app = express();
     support.init(['cors'], { cors: {
@@ -89,21 +86,19 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'http://localhost:9000')
-      .expect(403)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
-        chai.expect(res.body.msg).to.be.eql('Access is restricted');
-        chai.expect(res.body.origin).to.be.eql('http://localhost:9000');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'http://localhost:9000').send({});
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body).to.have.property('origin');
+    chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
+    chai.expect(res.body.msg).to.be.eql('Access is restricted');
+    chai.expect(res.body.origin).to.be.eql('http://localhost:9000');
 
   });
 
-  it('should reject requests with the wrong origin header when allowed origins are configured in dev mode', (done) => {
+  it('should reject requests with the wrong origin header when allowed origins are configured in dev mode', async function () {
 
     const app = express();
     support.init(['cors'], {
@@ -121,21 +116,19 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'http://www.example.com')
-      .expect(403)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
-        chai.expect(res.body.msg).to.be.eql('Access is restricted');
-        chai.expect(res.body.origin).to.be.eql('http://www.example.com');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'http://www.example.com').send({});
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body).to.have.property('origin');
+    chai.expect(res.body.code).to.be.eql('CORS_AUTH_FAILED');
+    chai.expect(res.body.msg).to.be.eql('Access is restricted');
+    chai.expect(res.body.origin).to.be.eql('http://www.example.com');
 
   });
 
-  it('should accept requests with the right origin header', (done) => {
+  it('should accept requests with the right origin header', async function () {
 
     const app = express();
     support.init(['cors']);
@@ -145,20 +138,17 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'http://localhost:3000')
-      .expect(200)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('SUCCESS');
-        chai.expect(res.body.msg).to.be.eql('This route does nothing');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'http://localhost:3000').send({});
+
+    chai.expect(res.status).to.be.eql(200);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.code).to.be.eql('SUCCESS');
+    chai.expect(res.body.msg).to.be.eql('This route does nothing');
 
   });
 
-  it('should accept requests with the right origin header when allowed origins are configured', (done) => {
+  it('should accept requests with the right origin header when allowed origins are configured', async function () {
 
     const app = express();
     support.init(['cors'], { cors: {
@@ -171,20 +161,17 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'https://testprod.example.com')
-      .expect(200)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('SUCCESS');
-        chai.expect(res.body.msg).to.be.eql('This route does nothing');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'https://testprod.example.com').send({});
+
+    chai.expect(res.status).to.be.eql(200);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.code).to.be.eql('SUCCESS');
+    chai.expect(res.body.msg).to.be.eql('This route does nothing');
 
   });
 
-  it('should accept requests with the right origin header when allowed origins are configured in dev mode', (done) => {
+  it('should accept requests with the right origin header when allowed origins are configured in dev mode', async function () {
 
     const app = express();
     support.init(['cors'], {
@@ -202,16 +189,13 @@ describe('CORS middleware restrictions', () => {
       res.status(200).json({ code: 'SUCCESS', msg: 'This route does nothing' });
     });
 
-    request(app)
-      .post('/api/some-endpoint')
-      .send({})
-      .set('Origin', 'http://localhost:9001')
-      .expect(200)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('SUCCESS');
-        chai.expect(res.body.msg).to.be.eql('This route does nothing');
-        done();
-      });
+    const res = await request(app).post('/api/some-endpoint').set('Origin', 'http://localhost:9001').send({});
+
+    chai.expect(res.status).to.be.eql(200);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.code).to.be.eql('SUCCESS');
+    chai.expect(res.body.msg).to.be.eql('This route does nothing');
 
   });
 

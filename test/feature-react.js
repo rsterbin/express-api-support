@@ -1,31 +1,33 @@
+const createError = require('http-errors');
 const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
-var fs = require('fs');
+const fs = require('fs');
 
 const support = require('../index');
 
 describe('Error handling with React passthrough', () => {
 
-  it('should send a json 404 message within the API section', function (done) {
+  afterEach(async function () {
+    await support.destroy();
+  });
+
+  it('should send a json 404 message within the API section', async function () {
 
     const app = express();
     support.init(['react'], { react: { consoleLogErrors: false } });
     support.handlers(app);
 
-    request(app)
-      .post('/api/not-found')
-      .send({})
-      .expect(404)
-      .end(function (err, res) {
-        chai.expect(res.body.code).to.be.eql('UNEXPECTED');
-        chai.expect(res.body.msg).to.be.eql('Endpoint not found');
-        done();
-      });
+    const res = await request(app).post('/api/not-found').send({});
+    chai.expect(res.status).to.be.eql(404);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.code).to.be.eql('UNEXPECTED');
+    chai.expect(res.body.msg).to.be.eql('Endpoint not found');
 
   });
 
-  it('should send a user-defined error if the endpoint returns one', (done) => {
+  it('should send a user-defined error if the endpoint returns one', async function () {
 
     const app = express();
     support.init(['react'], { react: { consoleLogErrors: false } });
@@ -39,21 +41,18 @@ describe('Error handling with React passthrough', () => {
     });
     support.handlers(app);
 
-    request(app)
-      .post('/api/custom')
-      .send({})
-      .expect(400)
-      .end((err, res) => {
-        chai.expect(res.body.code).to.be.eql('NOT_AUTHENTICATED');
-        chai.expect(res.body.msg).to.be.eql('You are not authenticated here');
-        done();
-      });
+    const res = await request(app).post('/api/custom').send({});
+    chai.expect(res.status).to.be.eql(400);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.code).to.be.eql('NOT_AUTHENTICATED');
+    chai.expect(res.body.msg).to.be.eql('You are not authenticated here');
 
   });
 
-  it('should pass through to the react path on non-api requests', (done) => {
+  it('should pass through to the react path on non-api requests', async function () {
 
-    const reactPath = __dirname + '/fake-react.html';
+    const reactPath = __dirname + '/data/fake-react.html';
     const html = fs.readFileSync(reactPath, 'utf8');
 
     const app = express();
@@ -61,15 +60,9 @@ describe('Error handling with React passthrough', () => {
     app.use(express.json());
     support.handlers(app);
 
-    request(app)
-      .post('/some-page')
-      .send({})
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        chai.expect(res.text).to.be.eql(html);
-        done();
-      });
+    const res = await request(app).post('/some-page').send({});
+    chai.expect(res.status).to.be.eql(200)
+    chai.expect(res.text).to.be.eql(html);
 
   });
 

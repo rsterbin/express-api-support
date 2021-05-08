@@ -26,10 +26,19 @@ class MailerContext extends ContextBase {
 
   getTransport () {
     if (this.transport === null) {
-      this.transport =  nodemailer.createTransport({
-        port: this.getConfigValue('port'),
-        ignoreTLS: this.getConfigValue('ignoreTLS')
-      });
+      let setup = {};
+      const url = this.getConfigValue('smtpUrl');
+      if (url !== undefined) {
+        setup = url;
+      } else {
+        for (const key of [ 'host', 'port', 'ignoreTLS' ]) {
+          const val = this.getConfigValue(key);
+          if (val !== undefined) {
+            setup[key] = val;
+          }
+        }
+      }
+      this.transport =  nodemailer.createTransport(setup);
     }
     return this.transport;
   }
@@ -99,6 +108,10 @@ class MailerContext extends ContextBase {
       return new this.MailerError('Mail send failed', e);
     }
     return true;
+  }
+
+  destroy() {
+    this.transport = null;
   }
 
 }

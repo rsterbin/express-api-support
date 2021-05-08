@@ -23,6 +23,8 @@ class ContextBase {
     return this.parent.context.system.setting(name);
   }
 
+  async destroy() {}
+
 }
 
 module.exports = ContextBase;

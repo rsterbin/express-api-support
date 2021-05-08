@@ -55,13 +55,19 @@ const requireAdminAuth = (feature) => {
     }
 
     // then make sure it's valid
+    try {
     const check = await logic.checkSessionToken(session.sid, session.uid, session.token);
-    if (!check.ok) {
-      res.status(check.data.status);
-      res.json({ code: check.data.code, msg: 'Invalid session' });
-      return;
-    } else {
-      res.locals.expires = check.data.expires;
+      if (!check.ok) {
+        res.status(check.data.status);
+        res.json({ code: check.data.code, msg: 'Invalid session' });
+        return;
+      } else {
+        res.locals.expires = check.data.expires;
+      }
+    } catch (e) {
+        res.status(500);
+        res.json({ code: 'UNEXPECTED', msg: 'Error checking session: ' + e });
+        return;
     }
 
     // if all is well, move on

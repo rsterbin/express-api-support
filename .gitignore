@@ -1,3 +1,6 @@
+# Config
+test/data/localConfig.json
+
 # Logs
 logs
 *.log

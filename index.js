@@ -24,6 +24,7 @@ class ApiSupport {
     this.context = {};
     this.features = [];
     this.calledFrom = CALLED_FROM;
+    this.initialized = false;
   }
 
   featureNames() {
@@ -31,6 +32,11 @@ class ApiSupport {
   }
 
   init(features = [], options = {}, addSpec = {}) {
+    if (this.initialized) {
+        // TODO: make this work
+        throw new Error('already initialized');
+    }
+
     const requiredContext = {
       system: true,
       config: true,
@@ -108,6 +114,8 @@ class ApiSupport {
     }
 
     this.context.config.invoke(configSpec, splitOptions);
+
+    this.initialized = true;
   }
 
   reportFeatureSettings() {
@@ -157,6 +165,15 @@ class ApiSupport {
       }
     }
     return scripts.join('\n\n');
+  }
+
+  async destroy() {
+    for (const cxt in this.context) {
+      await this.context[cxt].destroy();
+    }
+    this.context = {};
+    this.features = [];
+    this.initialized = false;
   }
 
 }

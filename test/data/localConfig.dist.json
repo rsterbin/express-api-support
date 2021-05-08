@@ -1,0 +1,12 @@
+{
+  "database": {
+    "createConfig": {
+      "user": "postgres",
+      "host": "localhost",
+      "password": "1234",
+      "port": 5432
+    },
+    "dbName": "testing123",
+    "urlBase": "postgres://regularuser:5678@127.0.0.1:5432/"
+  }
+}
