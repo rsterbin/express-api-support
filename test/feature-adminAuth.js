@@ -159,4 +159,23 @@ describe('Admin authentication feature', () => {
 
   });
 
+  // TODO: it should work with a table prefix
+
+  // TODO: bootstrap from support-feature level
+  // TODO: bootstrap on the command line
+
+  // TODO: it should reject a missing user
+  // TODO: it should successfully bootstrap a root user
+  // TODO: it should reject an incorrect password
+  // TODO: it should log in a user
+  // TODO: it should allow through a request if logged in
+  // TODO: it should reject a logged-out session
+  // TODO: it should reject a timed-out session
+  // TODO: it should refresh a session when used
+  // TODO: it should allow through forgot requests
+  // TODO: it should allow through reset requests
+
+  // TODO: test pw reset
+  // TODO: test users/sessions list
+
 });
