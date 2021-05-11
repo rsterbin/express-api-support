@@ -33,7 +33,7 @@ class ApiSupport {
 
   init(features = [], options = {}, addSpec = {}) {
     if (this.initialized) {
-        // TODO: make this work
+        // TODO: Custom error
         throw new Error('already initialized');
     }
 
