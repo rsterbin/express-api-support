@@ -7,6 +7,7 @@ const getAuthRouter = (feature) => {
 
   logic.init(feature);
 
+  const env = feature.getSystemValue('environment');
   const router = new Router();
 
   // /check POST: Check whether the admin session token is valid
@@ -36,7 +37,7 @@ const getAuthRouter = (feature) => {
       res.json({ code: 'PASSWORD_REQUIRED', msg: 'Password is required' });
       return;
     }
-    simpleOutput(await logic.login(req.body.email, req.body.password), res);
+    simpleOutput(await logic.login(req.body.email, req.body.password), res, env);
   });
 
   // admin/session/logout POST: Deletes your session
@@ -51,7 +52,7 @@ const getAuthRouter = (feature) => {
       res.json({ code: 'SESSION_REQUIRED', msg: 'Session is required' });
       return;
     }
-    simpleOutput(await logic.logout(req.body.session.sid), res);
+    simpleOutput(await logic.logout(req.body.session.sid), res, env);
   });
 
   // admin/auth/forgot POST: User forgot password; request reset
@@ -66,7 +67,7 @@ const getAuthRouter = (feature) => {
       res.json({ code: 'EMAIL_REQUIRED', msg: 'Email is required' });
       return;
     }
-    simpleOutput(await logic.requestPasswordReset(req.body.email), res);
+    simpleOutput(await logic.requestPasswordReset(req.body.email), res, env);
   });
 
   // admin/auth/reset POST: Reset password
@@ -88,17 +89,17 @@ const getAuthRouter = (feature) => {
     }
     if (typeof(req.body.password) === 'undefined') {
       // just validate the reset token
-      simpleOutput(await logic.checkResetToken(req.body.email, req.body.token), res);
+      simpleOutput(await logic.checkResetToken(req.body.email, req.body.token), res, env);
     } else {
       // do the reset
-      simpleOutput(await logic.resetPassword(req.body.email, req.body.token, req.body.password), res);
+      simpleOutput(await logic.resetPassword(req.body.email, req.body.token, req.body.password), res, env);
     }
   });
 
   if (feature.getConfigValue('allowSessionsListRoute')) {
     // admin/user/sessions POST: list all active sessions
     router.post('/sessions', async function(req, res, next) {
-      simpleOutput(await logic.getAllActiveSessions(), res);
+      simpleOutput(await logic.getAllActiveSessions(), res, env);
     });
   }
 
@@ -120,7 +121,7 @@ const getAuthRouter = (feature) => {
         res.json({ code: 'PASSWORD_REQUIRED', msg: 'Password is required' });
         return;
       }
-      simpleOutput(await logic.bootstrap(req.body.email, req.body.password, req.body), res);
+      simpleOutput(await logic.bootstrap(req.body.email, req.body.password, req.body), res, env);
     });
   }
 

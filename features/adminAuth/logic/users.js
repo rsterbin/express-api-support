@@ -13,7 +13,7 @@ class AdminAuthLogicUsers extends LogicBase {
 
   async create (email, password, data = {}) {
     if (!emailValidator.validate(email)) {
-      return { ok: false, data: { code: 'INVALID_EMAIL_ADDRESS', status: 400 } };
+      return { ok: false, data: { code: 'INVALID_EMAIL_ADDRESS', status: 400, msg: 'Email address is invalid' } };
     }
     const user_id = this.context.crypt.createUuid();
     const hashed = await this.context.crypt.hash(password);
@@ -32,7 +32,7 @@ class AdminAuthLogicUsers extends LogicBase {
       RETURNING user_id`;
     const sth = await this.context.database.query(sql, vals);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'DUPLICATE_EMAIL', status: 400 } };
+      return { ok: false, data: { code: 'DUPLICATE_EMAIL', status: 400, msg: 'Email address already exists' } };
     }
     const newUser = { uid: sth.rows[0].user_id, email: email };
     for (const field of this.userFields) {
@@ -46,7 +46,7 @@ class AdminAuthLogicUsers extends LogicBase {
     const vals = [];
     if ('email' in data) {
       if (!emailValidator.validate(data.email)) {
-        return { ok: false, data: { code: 'INVALID_EMAIL_ADDRESS', status: 400 } };
+        return { ok: false, data: { code: 'INVALID_EMAIL_ADDRESS', status: 400, msg: 'Email address is invalid' } };
       }
       cols.push('email');
       vals.push(data.email.tolowercase());
@@ -69,7 +69,7 @@ class AdminAuthLogicUsers extends LogicBase {
       SELECT count(*) AS affected FROM rows`;
     const sth = await this.context.database.query(sql, vals);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500 } };
+      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500, msg: 'Could not update user info', dev: 'Nothing returned from update statement' } };
     }
     const upd = sth.rows[0].affected > 0;
     return { ok: true, data: { uid: user_id, updated: upd } };
@@ -83,7 +83,7 @@ class AdminAuthLogicUsers extends LogicBase {
       WHERE user_id = $1`;
     const sth = await this.context.database.query(sql, [ user_id ]);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'USER_NOT_FOUND', status: 404 } };
+      return { ok: false, data: { code: 'USER_NOT_FOUND', status: 404, msg: 'No such user was found' } };
     }
     const user = this.format(sth.rows[0]);
     return { ok: true, data: { user: user } };
@@ -112,7 +112,7 @@ class AdminAuthLogicUsers extends LogicBase {
       SELECT count(*) AS affected FROM rows`;
     const sth = await this.context.database.query(sql, [ user_id ]);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500 } };
+      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500, msg: 'Could not disable user', dev: 'Nothing returned from update statement' } };
     }
     const upd = sth.rows[0].affected > 0;
     return { ok: true, data: { uid: user_id, updated: upd } };
@@ -129,7 +129,7 @@ class AdminAuthLogicUsers extends LogicBase {
       SELECT count(*) AS affected FROM rows`;
     const sth = await this.context.database.query(sql, [ user_id ]);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500 } };
+      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500, msg: 'Could not disable user', dev: 'Nothing returned from update statement' } };
     }
     const upd = sth.rows[0].affected > 0;
     return { ok: true, data: { uid: user_id, updated: upd } };
@@ -158,12 +158,12 @@ class AdminAuthLogicUsers extends LogicBase {
       AND disabled IS FALSE`;
     const sth = await this.context.database.query(sql, [ email ]);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'INVALID_CREDENTIALS', status: 403 } };
+      return { ok: false, data: { code: 'INVALID_CREDENTIALS', status: 403, msg: 'Invalid credentials', dev: 'Email not found' } };
     }
     const row = sth.rows[0];
     const valid = await this.context.crypt.verify(password, row.password);
     if (!valid) {
-      return { ok: false, data: { code: 'INVALID_CREDENTIALS', status: 403 } };
+      return { ok: false, data: { code: 'INVALID_CREDENTIALS', status: 403, msg: 'Invalid credentials', dev: 'Password does not match' } };
     }
     return { ok: true, data: this.format(row) };
   }
@@ -177,8 +177,10 @@ class AdminAuthLogicUsers extends LogicBase {
       AND disabled IS FALSE
       RETURNING user_id`;
     const sth = await this.context.database.query(sql, [ hashed, email ]);
-    const updated = (sth.rows.length > 0);
-    return { ok: true, data: { email: email, updated: updated } };
+    if (sth.rows.length < 1) {
+      return { ok: false, data: { code: 'UPDATE_FAILED', status: 500, msg: 'Could not change password', dev: 'Nothing returned from update statement' } };
+    }
+    return { ok: true, data: { email: email, updated: true } };
   }
 }
 

@@ -36,7 +36,7 @@ class AdminAuthLogicReset extends LogicBase {
       RETURNING user_id, reset_id, expires`;
     const sth = await this.context.database.query(sql, [ email, hashed ]);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'EMAIL_NOT_FOUND', status: 403 } };
+      return { ok: false, data: { code: 'EMAIL_NOT_FOUND', status: 403, msg: 'No such user exists' } };
     }
     const row = sth.rows[0];
     return {
@@ -114,12 +114,12 @@ class AdminAuthLogicReset extends LogicBase {
       WHERE u.email = $1 AND r.expires >= NOW()`;
     const sth2 = await this.context.database.query(sql2, [ email ]);
     if (sth2.rows.length < 1) {
-      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403 } };
+      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403, msg: 'Token is invalid', dev: 'No unexpired tokens for this user' } };
     }
     const row = sth2.rows[0];
     const valid = await this.context.crypt.verify(token, row.token);
     if (!valid) {
-      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403 } };
+      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403, msg: 'Token is invalid', dev: 'Token does not match' } };
     }
     return { ok: true, data: { reset_id: row.reset_id, email: row.email, expires: row.expires } };
   }

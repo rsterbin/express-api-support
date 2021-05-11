@@ -8,7 +8,7 @@ const support = require('../index');
 const featureNames = support.featureNames();
 
 // Configure
-const argsParser = yargs
+let argsParser = yargs
   .alias('v', 'version')
   .version(PKG.version)
   .describe('v', 'show version information')
@@ -32,15 +32,25 @@ const argsParser = yargs
 
   .demandOption('f', 'You must invoke this script with at least one feature');
 
-// Parse args
-const argv = argsParser.argv;
+// Parse args for initializing support
+let argv = argsParser.argv;
 
 // Fire up the support object
 support.init(argv.f, argv.c);
 
-// Generate the SQL
-const sql = support.generateSql();
+// TODO: This sucks -- need to have a way of initializing support ahead of time so that yargs has the right options for bootstrapping
 
-// Print it out
-process.stdout.write(sql + '\n');
+// Add in the rest of the options
+argsParser = support.bootstrapOptions(argsParser);
+argv = argsParser.argv;
+
+// Bootstrap
+support.bootstrap(argv)
+  .then(_ => {
+    console.log('Done');
+  })
+  .catch(err => {
+    console.log(err);
+  })
+  .finally(_ => support.destroy());
 

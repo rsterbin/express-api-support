@@ -7,7 +7,7 @@
       "required": false,
       "type": "string",
       "from_env": "REACT_DOC_INDEX",
-      "description": "The path to the main react html page we want to pass through to if express doesn\"t handle it",
+      "description": "The path to the main react html page we want to pass through to if express doesn't handle it",
       "default_help": "the system setting \"expressPath\" followed by \"/public/index.html\"",
       "default":""
     },

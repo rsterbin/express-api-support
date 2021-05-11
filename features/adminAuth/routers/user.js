@@ -7,16 +7,17 @@ const getUserRouter = (feature) => {
 
   logic.init(feature);
 
+  const env = feature.getSystemValue('environment');
   const router = new Router();
 
   // admin/user POST: fetch your user info
   router.post('/', async function(req, res, next) {
-    simpleOutput(await logic.getUser(req.body.session.uid), res);
+    simpleOutput(await logic.getUser(req.body.session.uid), res, env);
   });
 
   // admin/user/update POST: update your user info
   router.post('/update', async function(req, res, next) {
-    simpleOutput(await logic.updateUser(req.body.session.uid, req.body), res);
+    simpleOutput(await logic.updateUser(req.body.session.uid, req.body), res, env);
   });
 
   /*
@@ -37,28 +38,28 @@ const getUserRouter = (feature) => {
       res.json({ code: 'PASSWORD_REQUIRED', msg: 'Password is required' });
       return;
     }
-    simpleOutput(await logic.createUser(req.body.email, req.body.password, req.body), res);
+    simpleOutput(await logic.createUser(req.body.email, req.body.password, req.body), res, env);
   });
 
   // admin/user/list POST: list of all users
   router.post('/list', async function(req, res, next) {
     const includeDisabled = 'include_disabled' in req.body ? req.body.include_disabled : false;
-    simpleOutput(await logic.getAllUsers(includeDisabled), res);
+    simpleOutput(await logic.getAllUsers(includeDisabled), res, env);
   });
 
   // admin/user/update/:uid POST: update user info (someone else's)
   router.post('/update/:uid', async function(req, res, next) {
-    simpleOutput(await logic.updateUser(req.params.uid, req.body), res);
+    simpleOutput(await logic.updateUser(req.params.uid, req.body), res, env);
   });
 
   // admin/user/disable POST: disable an admin user
   router.post('/disable/:uid', async function(req, res, next) {
-    simpleOutput(await logic.disableUser(req.params.uid), res);
+    simpleOutput(await logic.disableUser(req.params.uid), res, env);
   });
 
   // admin/user/enable POST: re-enable an admin user
   router.post('/enable/:uid', async function(req, res, next) {
-    simpleOutput(await logic.enableUser(req.params.uid), res);
+    simpleOutput(await logic.enableUser(req.params.uid), res, env);
   });
 
   return router;

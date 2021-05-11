@@ -61,6 +61,12 @@ class FeatureBase {
     return template;
   }
 
+  bootstrapOptions(argsParser) {
+    return argsParser;
+  }
+
+  async bootstrap(options = {}) {} // eslint-disable-line no-unused-vars
+
 }
 
 module.exports = FeatureBase;

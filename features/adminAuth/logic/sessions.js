@@ -20,7 +20,7 @@ class AdminAuthLogicSessions extends LogicBase {
       RETURNING expires`;
     const sth = await this.context.database.query(sql, [ session_id, user_id, hashed ]);
     if (sth.rows.length < 1) {
-      return { ok: false, data: { code: 'SESSION_START_FAILED', status: 403 } };
+      return { ok: false, data: { code: 'SESSION_START_FAILED', status: 403, msg: 'Session could not be started', dev: 'Insert returned nothing' } };
     }
     return {
       ok: true,
@@ -61,11 +61,11 @@ class AdminAuthLogicSessions extends LogicBase {
       WHERE session_id = $1 AND user_id = $2 AND expires >= NOW()`;
     const sth1 = await this.context.database.query(sql1, [ session_id, user_id ]);
     if (sth1.rows.length < 1) {
-      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403 } };
+      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403, msg: 'Token is invalid', dev: 'No matching unexpired session exists' } };
     }
     const valid = await this.context.crypt.verify(token, sth1.rows[0].token);
     if (!valid) {
-      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403 } };
+      return { ok: false, data: { code: 'TOKEN_INVALID', status: 403, msg: 'Token is invalid', dev: 'Token does not match' } };
     }
     let exp = sth1.rows[0].expires;
     const sql2 = `

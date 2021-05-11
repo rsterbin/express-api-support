@@ -167,6 +167,19 @@ class ApiSupport {
     return scripts.join('\n\n');
   }
 
+  bootstrapOptions(argsParser) {
+    for (const feature of this.features) {
+        argsParser = feature.bootstrapOptions(argsParser);
+    }
+    return argsParser;
+  }
+
+  async bootstrap(options = {}) {
+    for (const feature of this.features) {
+      await feature.bootstrap(options);
+    }
+  }
+
   async destroy() {
     for (const cxt in this.context) {
       await this.context[cxt].destroy();

@@ -6,6 +6,7 @@ const userRouter = require('./routers/user');
 const restrictions = require('./middleware/restrictions');
 
 const featureConfig = require('./config.json');
+const logic = require('./logic');
 
 class FeatureAdminAuth extends Feature {
 
@@ -15,6 +16,13 @@ class FeatureAdminAuth extends Feature {
     this.configSpec = featureConfig.spec;
     this.configSpec.userFields.type = this.validateUserFields;
     this.name = featureConfig.name;
+    this.AdminAuthError = class AdminAuthError extends Error {
+      constructor(code, message) {
+        super('[' + code + '] ' + message);
+        this.name = 'AdminAuthError';
+        this.code = code;
+      }
+    };
   }
 
   getCustomDefault(name) {
@@ -75,6 +83,49 @@ class FeatureAdminAuth extends Feature {
       userFields: this.getConfigValue('userFields'),
     };
     return template(payload);
+  }
+
+  // Adds yargs options for bootstrapping
+  bootstrapOptions(argsParser) {
+    let secretNote = '';
+    if (this.getConfigValue('secretBootstrapPassword')) {
+      secretNote = ' (must match your secret bootstrap password!)';
+    }
+    return argsParser
+      .option('adminAuth-email', {
+        describe: 'The email address for the first user in the admin',
+        type: 'string'
+      })
+      .option('adminAuth-password', {
+        describe: 'The password for the first user in the admin' + secretNote,
+        type: 'string'
+      })
+      .check((argv) => {
+        if (!('adminAuth-email' in argv)) {
+          throw new this.AdminAuthError('EMAIL_REQUIRED', 'Email is required');
+        }
+        if (!('adminAuth-password' in argv)) {
+          throw new this.AdminAuthError('PASSWORD_REQUIRED', 'Password is required');
+        }
+      });
+  }
+
+  // Creates the first user in the system
+  async bootstrap(argv = {}) {
+    logic.init(this);
+    const options = {};
+    for (const key in argv) {
+      if (key.match(/^adminAuth-/)) {
+        const myname = key.replace(/^adminAuth-/, '');
+        options[myname] = argv[key];
+      }
+    }
+    const out = await logic.bootstrap(options.email, options.password, options);
+    if (out.ok) {
+      return true;
+    } else {
+      throw new this.AdminAuthError(out.data.code, out.data.msg);
+    }
   }
 
 }

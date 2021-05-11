@@ -1,5 +1,5 @@
 
-const simpleOutput = (out, res) => {
+const simpleOutput = (out, res, env) => {
   if (!out.ok) {
     if (typeof out.data.status === 'number') {
       res.status(out.data.status);
@@ -9,6 +9,9 @@ const simpleOutput = (out, res) => {
     if (!('msg' in out.data) && 'code' in out.data) {
       out.data.msg = out.data.code.toLowerCase().replace(/_/g, ' ');
       out.data.msg = out.data.msg.charAt(0).toUpperCase() + out.data.msg.slice(1);
+    }
+    if ('dev' in out.data && env !== 'development') {
+        delete(out.data.dev);
     }
     res.json(out.data);
   } else {

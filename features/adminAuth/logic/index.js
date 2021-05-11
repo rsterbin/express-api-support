@@ -17,6 +17,7 @@ class AdminAuthLogic {
   }
 
   init(feature) {
+    this.feature = feature;
     this.sessions.init(feature);
     this.reset.init(feature);
     this.users.init(feature);
