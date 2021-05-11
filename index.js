@@ -33,8 +33,8 @@ class ApiSupport {
 
   init(features = [], options = {}, addSpec = {}) {
     if (this.initialized) {
-        // TODO: Custom error
-        throw new Error('already initialized');
+      // TODO: Custom error
+      throw new Error('already initialized');
     }
 
     const requiredContext = {
@@ -169,7 +169,7 @@ class ApiSupport {
 
   bootstrapOptions(argsParser) {
     for (const feature of this.features) {
-        argsParser = feature.bootstrapOptions(argsParser);
+      argsParser = feature.bootstrapOptions(argsParser);
     }
     return argsParser;
   }

@@ -11,7 +11,7 @@ const simpleOutput = (out, res, env) => {
       out.data.msg = out.data.msg.charAt(0).toUpperCase() + out.data.msg.slice(1);
     }
     if ('dev' in out.data && env !== 'development') {
-        delete(out.data.dev);
+      delete(out.data.dev);
     }
     res.json(out.data);
   } else {

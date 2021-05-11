@@ -1,4 +1,3 @@
-const createError = require('http-errors');
 const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
@@ -61,7 +60,7 @@ describe('Error handling with React passthrough', () => {
     support.handlers(app);
 
     const res = await request(app).post('/some-page').send({});
-    chai.expect(res.status).to.be.eql(200)
+    chai.expect(res.status).to.be.eql(200);
     chai.expect(res.text).to.be.eql(html);
 
   });
