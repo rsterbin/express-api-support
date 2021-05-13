@@ -7,27 +7,40 @@ const crypto = require('crypto');
 const support = require('../index');
 const LocalConfig = require('./data/localConfig.json');
 
-const basicOptions = function(dbName) {
-  return  {
+const getOptions = function(dbName, custom = {}) {
+  const basic = {
     database: { url: LocalConfig.database.urlBase + dbName },
     mailer: { templateDir: __dirname + '/data/templates' },
     react: { consoleLogErrors: false }
   };
+  // a shallow merge is okay here, because all the things we care about in this text are directly below the first level
+  const merged = {};
+  for (const sec in basic) {
+    const overwrite = sec in custom ? custom[sec] : {};
+    merged[sec] = { ...basic[sec], ...overwrite };
+  }
+  for (const sec in custom) {
+    if (!(sec in merged)) {
+      merged[sec] = custom[sec];
+    }
+  }
+  return merged;
 };
+
 
 const basicRoute = function(req, res) {
   if (typeof req.body !== 'object' || !('session' in req.body)) {
     res.status(400).json({ code: 'NOT_AUTHENTICATED', msg: 'You are not authenticated here' });
   } else {
-    res.status(200).json({ code: 'SUCCESS', msg: 'This custom route is complete' });
+    res.status(200).json({ data: { custom: 'Some Value' } });
   }
 };
 
-const installTables = async function(support) {
+const installTables = async function(support, prefix = '') {
   try {
     const sql = support.generateSql();
     await support.context.database.query(sql);
-    await support.context.database.query('select * from admin_users');
+    await support.context.database.query('select * from ' + prefix + 'admin_users');
   } catch (e) {
     console.log('install or check failed: ', e);
   }
@@ -54,7 +67,7 @@ describe('Admin authentication feature', () => {
   it('should allow through non-admin routes', async function() {
 
     const app = express();
-    support.init(['adminAuth', 'react'], basicOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
@@ -81,7 +94,7 @@ describe('Admin authentication feature', () => {
   it('should complain if no session info is present', async function() {
 
     const app = express();
-    support.init(['adminAuth', 'react'], basicOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
@@ -108,7 +121,7 @@ describe('Admin authentication feature', () => {
   it('should complain if the db tables are missing', async function() {
 
     const app = express();
-    support.init(['adminAuth', 'react'], basicOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
@@ -134,7 +147,7 @@ describe('Admin authentication feature', () => {
 
   it('should complain if the session is invalid', async function() {
 
-    support.init(['adminAuth', 'react'], basicOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
     await installTables(support);
 
     const app = express();
@@ -159,21 +172,241 @@ describe('Admin authentication feature', () => {
 
   });
 
-  // TODO: it should work with a table prefix
+  it('should work with a table prefix', async function() {
 
-  // TODO: bootstrap from support-feature level
-  // TODO: bootstrap on the command line
+    const options = getOptions(this.test.dbName, { adminAuth: { tablePrefix: 'pfx_' } });
+    support.init(['adminAuth', 'react'], options);
+    await installTables(support, 'pfx_');
 
-  // TODO: it should reject a missing user
-  // TODO: it should successfully bootstrap a root user
-  // TODO: it should reject an incorrect password
-  // TODO: it should log in a user
-  // TODO: it should allow through a request if logged in
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/admin/custom', basicRoute);
+    support.handlers(app);
+
+    const res = await request(app)
+      .post('/api/admin/custom')
+      .set('Accept', 'application/json')
+      .send({ session: { sid: 'fake-session-id', uid: 'fake-user-id', token: 'fake-token' } });
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+    chai.expect(res.body.msg).to.be.eql('Invalid session');
+
+  });
+
+  it('should bootstrap a root user', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+    let user = {};
+    try {
+      const sth = await support.context.database.query('select email from admin_users');
+      user = sth.rows[0];
+    } catch (e) {
+      console.log('checking boostrapped user failed: ', e);
+    }
+    chai.expect(user).to.have.property('email');
+    chai.expect(user.email).to.be.eql('test@example.com');
+
+  });
+
+  it('should reject bootstrapping a second user', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+
+    // first should work
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+    // second should fail
+    let ok = true;
+    try {
+      await support.bootstrap({ 'adminAuth-email': 'test2@example.com', 'adminAuth-password': '12345' });
+    } catch (e) {
+      ok = false;
+      chai.expect(e.name).to.be.eql('AdminAuthError');
+      chai.expect(e.message).to.be.eql('[CANNOT_BOOTSTRAP] You cannot bootstrap the admin when there are already users');
+    }
+    chai.expect(ok).to.be.eql(false);
+
+    let users = [];
+    try {
+      const sth = await support.context.database.query('select email from admin_users order by user_id');
+      users = sth.rows;
+    } catch (e) {
+      console.log('checking boostrapped users failed: ', e);
+    }
+    chai.expect(users.length).to.be.eql(1);
+    chai.expect(users[0]).to.have.property('email');
+    chai.expect(users[0].email).to.be.eql('test@example.com');
+
+  });
+
+  it('should reject bootstrapping if the secret password is set but not matched', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName, { adminAuth: { secretBootstrapPassword: '67890' } }));
+    await installTables(support);
+
+    // attempt should fail
+    let ok = true;
+    try {
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    } catch (e) {
+      ok = false;
+      chai.expect(e.name).to.be.eql('AdminAuthError');
+      chai.expect(e.message).to.be.eql('[CANNOT_BOOTSTRAP] You cannot bootstrap without the secret code');
+    }
+    chai.expect(ok).to.be.eql(false);
+
+    let users = [];
+    try {
+      const sth = await support.context.database.query('select email from admin_users order by user_id');
+      users = sth.rows;
+    } catch (e) {
+      console.log('checking boostrapped users failed: ', e);
+    }
+    chai.expect(users.length).to.be.eql(0);
+
+  });
+
+  it('should reject a missing user', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    support.handlers(app);
+
+    const res = await request(app)
+      .post('/api/admin/auth/login')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', password: '12345' });
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body.code).to.be.eql('INVALID_CREDENTIALS');
+    chai.expect(res.body.msg).to.be.eql('Invalid credentials');
+
+  });
+
+  it('should reject an incorrect password', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    support.handlers(app);
+
+    const res = await request(app)
+      .post('/api/admin/auth/login')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', password: '67890' });
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body.code).to.be.eql('INVALID_CREDENTIALS');
+    chai.expect(res.body.msg).to.be.eql('Invalid credentials');
+
+  });
+
+  it('should log in a valid user', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    support.handlers(app);
+
+    const res = await request(app)
+      .post('/api/admin/auth/login')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', password: '12345' });
+
+    chai.expect(res.status).to.be.eql(200);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body.data).to.have.property('user');
+    chai.expect(res.body.data.user.email).to.be.eql('test@example.com');
+    chai.expect(res.body.data).to.have.property('session');
+    chai.expect(res.body.data.session).to.have.property('sid');
+    chai.expect(res.body.data.session).to.have.property('uid');
+    chai.expect(res.body.data.session).to.have.property('token');
+    chai.expect(res.body.data.session.uid).to.be.eql(res.body.data.user.uid);
+    chai.expect(res.body.data).to.have.property('expires');
+
+  });
+
+  it('should allow through a request if logged in', async function() {
+
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/admin/custom', basicRoute);
+    support.handlers(app);
+
+    const login = await request(app)
+      .post('/api/admin/auth/login')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', password: '12345' });
+    chai.expect(login.status).to.be.eql(200);
+    const session = login.body.data.session;
+
+    const res = await request(app)
+      .post('/api/admin/custom')
+      .set('Accept', 'application/json')
+      .send({ session: session });
+
+    chai.expect(res.status).to.be.eql(200);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body).to.have.property('data');
+    chai.expect(res.body.data).to.have.property('custom');
+    chai.expect(res.body.data.custom).to.be.eql('Some Value');
+
+  });
+
   // TODO: it should reject a logged-out session
   // TODO: it should reject a timed-out session
   // TODO: it should refresh a session when used
   // TODO: it should allow through forgot requests
   // TODO: it should allow through reset requests
+  // TODO: it should bootstrap via the route if turned on
+  // TODO: it should not bootstrap via the route if turned off
 
   // TODO: test pw reset
   // TODO: test users/sessions list
