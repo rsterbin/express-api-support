@@ -14,6 +14,7 @@ class MailerContext extends ContextBase {
     this.configSpec = contextConfig.spec;
     this.name = contextConfig.name;
     this.transport = null;
+    this.templates = {};
     this.MailerError = class MailerError extends Error {
       constructor(message, error) {
         super(message);
@@ -28,7 +29,7 @@ class MailerContext extends ContextBase {
     if (this.transport === null) {
       let setup = {};
       const url = this.getConfigValue('smtpUrl');
-      if (url !== undefined) {
+      if (url) {
         setup = url;
       } else {
         for (const key of [ 'host', 'port', 'ignoreTLS' ]) {
@@ -74,6 +75,7 @@ class MailerContext extends ContextBase {
       } catch (e) {
         throw new this.MailerError('Cannot compile template subject', e);
       }
+      this.templates[name] = info;
     }
     return this.templates[name];
   }
@@ -103,7 +105,7 @@ class MailerContext extends ContextBase {
     }
     try {
       const info = await this.getTransport().sendMail(msg);
-      console.log('Mailer:send:info', info);
+      // console.log('Mailer:send:info', info);
     } catch (e) {
       return new this.MailerError('Mail send failed', e);
     }

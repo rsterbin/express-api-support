@@ -129,6 +129,17 @@ class ApiSupport {
     return settings;
   }
 
+  reportContextSettings() {
+    const settings = {};
+    for (const cxt in this.context) {
+      settings[cxt] = {};
+      for (const name in this.context[cxt].configSpec) {
+        settings[cxt][name] = this.context[cxt].getConfigValue(name);
+      }
+    }
+    return settings;
+  }
+
   middleware(app) {
     for (const feature of this.features) {
       feature.middleware(app);

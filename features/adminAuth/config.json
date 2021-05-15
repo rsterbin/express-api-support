@@ -37,8 +37,8 @@
       "required": false,
       "type": "integer",
       "from_env": "ADMIN_AUTH_SESSION_LENGTH",
-      "description": "Length of the admin sessions, in minutes",
-      "default": 60
+      "description": "Length of the admin sessions, in seconds",
+      "default": 3600
     },
     "resetTokenLifetime": {
       "required": false,

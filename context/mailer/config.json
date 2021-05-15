@@ -7,8 +7,7 @@
       "required": false,
       "type": "string",
       "from_env": "EMAIL_SMTP_URL",
-      "description": "URL with \"smtp:\" or \"smtps:\" as the protocol (overrides other connections options)",
-      "default": 1025
+      "description": "URL with \"smtp:\" or \"smtps:\" as the protocol (overrides other connections options)"
     },
     "host": {
       "required": false,

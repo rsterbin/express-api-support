@@ -10,25 +10,37 @@ class SystemContext extends ContextBase {
     super();
     this.configSpec = contextConfig.spec;
     this.name = contextConfig.name;
-    this.defaults = {
-      environment: process.env.NODE_ENV || 'production',
-      siteName: process.env.npm_package_name || '',
-      apiUrl: 'http://localhost:3000',
-      clientUrl: 'http://localhost:3000',
-      apiUrlPrefix: '/api'
-    };
+    this.settingNames = [ 'environment', 'siteName', 'apiUrl', 'clientUrl', 'apiUrlPrefix', 'expressPath', 'matchApi' ];
     this.setup = false;
+    this.defaultExpressPath = null;
+    this.defaultMatchApi = null;
   }
 
   doSetup() {
 
     // Parent won't be set in the constructor, so detect here
     if (this.parent.calledFrom.match(/\/app\.js$/)) {
-      this.defaults.expressPath = path.dirname(this.parent.calledFrom);
+      this.defaultExpressPath = path.dirname(this.parent.calledFrom);
     }
 
     this.setup = true;
 
+  }
+
+  getCustomDefault(name) {
+    if (name === 'environment') {
+      return process.env.NODE_ENV || 'production';
+    }
+    if (name === 'siteName') {
+      return process.env.npm_package_name || '';
+    }
+    if (name === 'expressPath') {
+      return this.defaultExpressPath;
+    }
+    if (name === 'matchApi') {
+      return this.defaultMatchApi;
+    }
+    return undefined;
   }
 
   getSettings() {
@@ -38,26 +50,18 @@ class SystemContext extends ContextBase {
 
     // Loop through and fill settings
     const settings = {};
-    for (const name in this.defaults) {
-      settings[name] = this.parent.context.config.get('context.system.' + name, this.defaults[name]);
+    for (const name of this.settingNames) {
+      settings[name] = this.getConfigValue(name);
+      if (name === 'apiUrlPrefix') {
+        this.defaultMatchApi = '^' + settings.apiUrlPrefix + '/';
+      }
     }
-
-    // Match API uses the value of apiUrlPrefix for its default value, so
-    // fetch it and build the default every time
-    settings.matchApi = this.parent.context.config.get('context.system.matchApi', '^' + settings.apiUrlPrefix + '/');
 
     return settings;
   }
 
   setting(key) {
     return this.getSettings()[key];
-  }
-
-  mailerPayload() {
-    return {
-      clientUrl: this.setting('clientUrl'),
-      siteName: this.setting('siteName')
-    };
   }
 
 }

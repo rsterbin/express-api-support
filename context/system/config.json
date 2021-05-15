@@ -19,19 +19,22 @@
       "required": false,
       "type": "string",
       "from_env": "API_URL",
-      "description": "The URL of this API (defaults to \"http://localhost:3000\")"
+      "description": "The URL of this API (defaults to \"http://localhost:3000\")",
+      "default": "http://localhost:3000"
     },
     "clientUrl": {
       "required": false,
       "type": "string",
       "from_env": "API_CLIENT_URL",
-      "description": "The URL of the site this API supports (defaults to \"http://localhost:3000\")"
+      "description": "The URL of the site this API supports (defaults to \"http://localhost:3000\")",
+      "default": "http://localhost:3000"
     },
     "apiUrlPrefix": {
       "required": false,
       "type": "string",
       "from_env": "API_URL_PREFIX",
-      "description": "The prefix to all API endpoints (defaults to \"/api\")"
+      "description": "The prefix to all API endpoints (defaults to \"/api\")",
+      "default": "/api"
     },
     "matchApi": {
       "required": false,

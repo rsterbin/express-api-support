@@ -65,14 +65,16 @@ class AdminAuthLogicReset extends LogicBase {
     } else {
       link += '?token=' + token;
     }
-    console.log('AdminAuthLogicReset.sendEmail:link', link);
+    // console.log('AdminAuthLogicReset.sendEmail:link', link);
 
     // TODO: remove convenience override once the client half is done
     link = 'http://localhost2:3003/api/v1/admin/auth/reset || token: ' + token +
       ' || email: ' + user.data.user.email;
 
     // TODO: formatting for expires date
-    const payload = { ...this.context.system.mailerPayload,
+    const payload = {
+      clientUrl: this.feature.getSystemValue('clientUrl'),
+      siteName: this.feature.getSystemValue('siteName'),
       link: link,
       short: user.data.short,
       expires: expires

@@ -44,7 +44,11 @@ const splitReactFromApi = (feature) => {
         console.log(err);
       }
       let msg = err.status === 404 ? msg404 : err.message;
-      res.json({ code: 'UNEXPECTED', msg: msg, original: req.originalUrl });
+      const json = { code: 'UNEXPECTED', msg: msg, original: req.originalUrl };
+      if (env === 'development') {
+        json.stack = 'stack' in err ? err.stack : new Error().stack;
+      }
+      res.json(json);
 
     } else {
       res.sendFile(reactPath);
