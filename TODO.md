@@ -11,4 +11,6 @@
 - Export the `simpleOutput` route helper for use elsewhere
 - System context module is a bit awkward and overlaps with config; consolidate
 - Option for adminAuth to allow bootstrapping more than one user
-
+- Feature for admin auth to accept authorization logic passed in admin-y features (e.g., create a new user)
+- Rename admin auth, as it's really not admin-specific
+- Visitor tokens / non-logged-in sessions
