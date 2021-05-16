@@ -86,20 +86,6 @@
       "from_env": "ADMIN_AUTH_ALLOW_SESSIONS_LIST_ROUTE",
       "description": "Flag to allow a route for showing all active admin sessions",
       "default": false
-    },
-    "allowBootstrapRoute": {
-      "required": false,
-      "type": "boolean",
-      "from_env": "ADMIN_AUTH_ALLOW_BOOTSTRAP_ROUTE",
-      "description": "Flag to allow a route for bootstrapping an admin auth user",
-      "default": false
-    },
-    "secretBootstrapPassword": {
-      "required": false,
-      "type": "string",
-      "from_env": "ADMIN_AUTH_SECRET_BOOTSTRAP_PASSWORD",
-      "description": "Secret bootstrap password for use with the bootstrap route",
-      "default": false
     }
   }
 }

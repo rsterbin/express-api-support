@@ -10,4 +10,5 @@
 - Finish admin auth unit tests
 - Export the `simpleOutput` route helper for use elsewhere
 - System context module is a bit awkward and overlaps with config; consolidate
+- Option for adminAuth to allow bootstrapping more than one user
 

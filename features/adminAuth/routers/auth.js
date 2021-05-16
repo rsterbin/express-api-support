@@ -103,28 +103,6 @@ const getAuthRouter = (feature) => {
     });
   }
 
-  if (feature.getConfigValue('allowBootstrapRoute')) {
-    // /bootstrap POST: If we have NO admin users, this can be used (once) to bring up a system user using a very stupid plain text secret code check
-    router.post('/bootstrap', async function(req, res, next) {
-      if (typeof(req.body) !== 'object') {
-        res.status(400);
-        res.json({ code: 'NO_DATA', msg: 'No data was provided' });
-        return;
-      }
-      if (typeof(req.body.email) === 'undefined') {
-        res.status(400);
-        res.json({ code: 'EMAIL_REQUIRED', msg: 'Email is required' });
-        return;
-      }
-      if (typeof(req.body.password) === 'undefined') {
-        res.status(400);
-        res.json({ code: 'PASSWORD_REQUIRED', msg: 'Password is required' });
-        return;
-      }
-      simpleOutput(await logic.bootstrap(req.body.email, req.body.password, req.body), res, env);
-    });
-  }
-
   return router;
 };
 

@@ -50,28 +50,21 @@ const DB_NAMES = {};
 
 const sleep = function(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
+};
 
 const newMailClient = function() {
-    const maildev = new MailDev({ silent: true });
-    maildev.listen();
-    return maildev;
-}
+  const maildev = new MailDev({ silent: true });
+  maildev.listen();
+  return maildev;
+};
 
-const getEmailsFromClient = function(maildev) {
-  return new Promise(resolve => maildev.getAllEmail((err, emails) => resolve({ err: err, emails: emails })));
-}
-
-const waitForOneEmail = function(maildev) {
-  return new Promise(resolve => maildev.on('new', resolve));
-//    maildev.on('new', function(email){
-//      console.log('Received new email with subject: %s', email.subject)
-//    })
-}
+// const waitForOneEmail = function(maildev) {
+//   return new Promise(resolve => maildev.on('new', resolve));
+// }
 
 const stopMailClient = function(maildev) {
   return new Promise(resolve => maildev.close(resolve));
-}
+};
 
 describe('Admin authentication feature', () => {
 
@@ -276,30 +269,40 @@ describe('Admin authentication feature', () => {
 
   });
 
-  it('should reject bootstrapping if the secret password is set but not matched', async function() {
+  it('should bootstrap a user with custom extra fields', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName, { adminAuth: { secretBootstrapPassword: '67890' } }));
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName, { adminAuth: {
+      userFields: [
+        { key: 'first', column: 'first_name', pgtype: 'text' },
+        { key: 'last', column: 'last_name', pgtype: 'text' },
+        { key: 'access', column: 'access_level', pgtype: 'integer' }
+      ]
+    } }));
     await installTables(support);
 
-    // attempt should fail
-    let ok = true;
-    try {
-      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
-    } catch (e) {
-      ok = false;
-      chai.expect(e.name).to.be.eql('AdminAuthError');
-      chai.expect(e.message).to.be.eql('[CANNOT_BOOTSTRAP] You cannot bootstrap without the secret code');
-    }
-    chai.expect(ok).to.be.eql(false);
+    await support.bootstrap({
+      'adminAuth-email': 'test@example.com',
+      'adminAuth-password': '12345',
+      'adminAuth-first': 'Testy',
+      'adminAuth-last': 'McTest',
+      'adminAuth-access': 3
+    });
 
-    let users = [];
+    let user = {};
     try {
-      const sth = await support.context.database.query('select email from admin_users order by user_id');
-      users = sth.rows;
+      const sth = await support.context.database.query('select email, first_name, last_name, access_level from admin_users');
+      user = sth.rows[0];
     } catch (e) {
-      console.log('checking boostrapped users failed: ', e);
+      console.log('checking boostrapped user failed: ', e);
     }
-    chai.expect(users.length).to.be.eql(0);
+    chai.expect(user).to.have.property('email');
+    chai.expect(user).to.have.property('first_name');
+    chai.expect(user).to.have.property('last_name');
+    chai.expect(user).to.have.property('access_level');
+    chai.expect(user.email).to.be.eql('test@example.com');
+    chai.expect(user.first_name).to.be.eql('Testy');
+    chai.expect(user.last_name).to.be.eql('McTest');
+    chai.expect(user.access_level).to.be.eql(3);
 
   });
 
@@ -597,7 +600,7 @@ describe('Admin authentication feature', () => {
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com' });
 
-//    const email = await emailPromise;
+    // const email = await emailPromise;
     stopMailClient(maildev);
 
     chai.expect(res.status).to.be.eql(200);
@@ -611,12 +614,50 @@ describe('Admin authentication feature', () => {
 
   });
 
+  // it should allow through reset attempts
+  it('should allow through reset attempts', async function() {
 
-  // TODO: it should allow through reset requests
-  // TODO: it should bootstrap via the route if turned on
-  // TODO: it should not bootstrap via the route if turned off
+    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    await installTables(support);
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
-  // TODO: test pw reset
-  // TODO: test users/sessions list
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    support.handlers(app);
+
+    const res = await request(app)
+      .post('/api/admin/auth/reset')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', token: '12345abcde' });
+
+    chai.expect(res.status).to.be.eql(403);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.msg).to.be.eql('Token is invalid');
+
+  });
+
+  // TODO: it should perform a password reset with a valid token
+  // TODO: it should reject a password reset attempt with an expired token
+
+  // TODO: the user routes should not appear if turned off
+  // TODO: the user should be able to update personal info
+  // TODO: the user should be able to update their password
+  // TODO: list of users should be available
+  // TODO: list of users should include disabled if requested
+  // TODO: list of users should include extra fields
+  // TODO: list of sessions should not be available if not turned on
+  // TODO: list of sessions should be available if turned on
+  // TODO: should be able to create a user
+  // TODO: should be able to create a user with extra fields
+  // TODO: should be able to disable a user
+  // TODO: should be able to re-enable a user
 
 });

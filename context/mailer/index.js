@@ -104,7 +104,7 @@ class MailerContext extends ContextBase {
       msg.text = template.text(payload);
     }
     try {
-      const info = await this.getTransport().sendMail(msg);
+      await this.getTransport().sendMail(msg);
       // console.log('Mailer:send:info', info);
     } catch (e) {
       return new this.MailerError('Mail send failed', e);
