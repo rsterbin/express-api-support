@@ -1,97 +1,41 @@
 const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
-const pgtools = require('pgtools');
-const crypto = require('crypto');
-const MailDev = require('maildev');
 
 const support = require('../index');
-const LocalConfig = require('./data/localConfig.json');
+const testHelpers = require('../utils/testHelpers');
 
-const getOptions = function(dbName, custom = {}) {
-  const basic = {
-    database: { url: LocalConfig.database.urlBase + dbName },
-    mailer: { templateDir: __dirname + '/data/templates', ignoreTLS: true, from: 'info@example.com' },
-    react: { consoleLogErrors: false },
-  };
-  // a shallow merge is okay here, because all the things we care about in this text are directly below the first level
-  const merged = {};
-  for (const sec in basic) {
-    const overwrite = sec in custom ? custom[sec] : {};
-    merged[sec] = { ...basic[sec], ...overwrite };
-  }
-  for (const sec in custom) {
-    if (!(sec in merged)) {
-      merged[sec] = custom[sec];
-    }
-  }
-  return merged;
-};
-
-const basicRoute = function(req, res) {
-  if (typeof req.body !== 'object' || !('session' in req.body)) {
-    res.status(400).json({ code: 'NOT_AUTHENTICATED', msg: 'You are not authenticated here' });
-  } else {
-    res.status(200).json({ data: { custom: 'Some Value' } });
-  }
-};
-
-const installTables = async function(support, prefix = '') {
-  try {
-    const sql = support.generateSql();
-    await support.context.database.query(sql);
-    await support.context.database.query('select * from ' + prefix + 'admin_users');
-  } catch (e) {
-    console.log('install or check failed: ', e);
-  }
-};
-
-const DB_NAMES = {};
-
-const sleep = function(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
-
-const newMailClient = function() {
-  const maildev = new MailDev({ silent: true });
-  maildev.listen();
-  return maildev;
-};
-
-// const waitForOneEmail = function(maildev) {
-//   return new Promise(resolve => maildev.on('new', resolve));
-// }
-
-const stopMailClient = function(maildev) {
-  return new Promise(resolve => maildev.close(resolve));
-};
+const maildev = testHelpers.newMailClient();
 
 describe('Admin authentication feature', () => {
 
+  before(async function() {
+    await testHelpers.startMailClient(maildev);
+  });
+
+  after(async function() {
+    await testHelpers.stopMailClient(maildev);
+  });
+
   beforeEach(async function () {
-    do {
-      this.currentTest.dbName = LocalConfig.database.dbNamePrefix + crypto.randomBytes(4).toString('hex');
-    } while (this.currentTest.dbName in DB_NAMES);
-    DB_NAMES[this.currentTest.dbName] = 1;
-    await pgtools.createdb(LocalConfig.database.createConfig, this.currentTest.dbName);
+    this.currentTest.testData = await testHelpers.spinup({ support: support, perTestDB: {}, mailDev: {} });
   });
 
   afterEach(async function () {
     this.timeout(120000);
-    await support.destroy();
-    await pgtools.dropdb(LocalConfig.database.createConfig, this.currentTest.dbName);
+    await testHelpers.winddown(this.currentTest.testData);
   });
 
   it('should allow through non-admin routes', async function() {
 
     const app = express();
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/custom', basicRoute);
+    app.use('/api/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const res = await request(app)
@@ -112,13 +56,13 @@ describe('Admin authentication feature', () => {
   it('should complain if no session info is present', async function() {
 
     const app = express();
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const res = await request(app)
@@ -139,13 +83,13 @@ describe('Admin authentication feature', () => {
   it('should complain if the db tables are missing', async function() {
 
     const app = express();
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const res = await request(app)
@@ -165,8 +109,8 @@ describe('Admin authentication feature', () => {
 
   it('should complain if the session is invalid', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
 
     const app = express();
     app.use(express.json());
@@ -174,7 +118,7 @@ describe('Admin authentication feature', () => {
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const res = await request(app)
@@ -192,9 +136,9 @@ describe('Admin authentication feature', () => {
 
   it('should work with a table prefix', async function() {
 
-    const options = getOptions(this.test.dbName, { adminAuth: { tablePrefix: 'pfx_' } });
+    const options = testHelpers.getOptions(this.test.testData, { adminAuth: { tablePrefix: 'pfx_' } });
     support.init(['adminAuth', 'react'], options);
-    await installTables(support, 'pfx_');
+    await testHelpers.installTables(support, 'pfx_');
 
     const app = express();
     app.use(express.json());
@@ -202,7 +146,7 @@ describe('Admin authentication feature', () => {
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const res = await request(app)
@@ -220,8 +164,8 @@ describe('Admin authentication feature', () => {
 
   it('should bootstrap a root user', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
 
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
@@ -239,8 +183,8 @@ describe('Admin authentication feature', () => {
 
   it('should reject bootstrapping a second user', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
 
     // first should work
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
@@ -271,14 +215,14 @@ describe('Admin authentication feature', () => {
 
   it('should bootstrap a user with custom extra fields', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName, { adminAuth: {
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { adminAuth: {
       userFields: [
         { key: 'first', column: 'first_name', pgtype: 'text' },
         { key: 'last', column: 'last_name', pgtype: 'text' },
         { key: 'access', column: 'access_level', pgtype: 'integer' }
       ]
     } }));
-    await installTables(support);
+    await testHelpers.installTables(support);
 
     await support.bootstrap({
       'adminAuth-email': 'test@example.com',
@@ -308,8 +252,8 @@ describe('Admin authentication feature', () => {
 
   it('should reject a missing user', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
 
     const app = express();
     app.use(express.json());
@@ -334,8 +278,8 @@ describe('Admin authentication feature', () => {
 
   it('should reject an incorrect password', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -361,8 +305,8 @@ describe('Admin authentication feature', () => {
 
   it('should log in a valid user', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -394,8 +338,8 @@ describe('Admin authentication feature', () => {
 
   it('should allow through a request if logged in', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -404,7 +348,7 @@ describe('Admin authentication feature', () => {
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const login = await request(app)
@@ -430,8 +374,8 @@ describe('Admin authentication feature', () => {
 
   it('should reject a logged-out session', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -440,7 +384,7 @@ describe('Admin authentication feature', () => {
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const login = await request(app)
@@ -473,8 +417,8 @@ describe('Admin authentication feature', () => {
     // we need to run out the session (min length 1s)
     this.timeout(3000);
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName, { adminAuth: { sessionLength: 1 } }));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { adminAuth: { sessionLength: 1 } }));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -483,7 +427,7 @@ describe('Admin authentication feature', () => {
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const login = await request(app)
@@ -499,7 +443,7 @@ describe('Admin authentication feature', () => {
       .send({ session: session });
     chai.expect(check.status).to.be.eql(200);
 
-    await sleep(1500);
+    await testHelpers.sleep(1500);
 
     const res = await request(app)
       .post('/api/admin/custom')
@@ -518,8 +462,8 @@ describe('Admin authentication feature', () => {
     // we need to refresh and then run out the session (min length 1s)
     this.timeout(50000);
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName, { adminAuth: { sessionLength: 1 } }));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { adminAuth: { sessionLength: 1 } }));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -528,7 +472,7 @@ describe('Admin authentication feature', () => {
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/admin/custom', basicRoute);
+    app.use('/api/admin/custom', testHelpers.basicRoute);
     support.handlers(app);
 
     const login = await request(app)
@@ -544,7 +488,7 @@ describe('Admin authentication feature', () => {
       .send({ session: session });
     chai.expect(check1.status).to.be.eql(200);
 
-    await sleep(300);
+    await testHelpers.sleep(300);
 
     const check2 = await request(app)
       .post('/api/admin/custom')
@@ -552,7 +496,7 @@ describe('Admin authentication feature', () => {
       .send({ session: session });
     chai.expect(check2.status).to.be.eql(200);
 
-    await sleep(800);
+    await testHelpers.sleep(800);
 
     const check3 = await request(app)
       .post('/api/admin/custom')
@@ -560,7 +504,7 @@ describe('Admin authentication feature', () => {
       .send({ session: session });
     chai.expect(check3.status).to.be.eql(200);
 
-    await sleep(1500);
+    await testHelpers.sleep(1500);
 
     const check4 = await request(app)
       .post('/api/admin/custom')
@@ -579,12 +523,10 @@ describe('Admin authentication feature', () => {
     // NB: we need the email to go somewhere, but we don't care about the
     // result right now, so the commented-out email promise stuff is just here
     // as a reminder for when I do the reset tests
-
-    const maildev = newMailClient();
     // const emailPromise = waitForOneEmail(maildev);
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -601,7 +543,6 @@ describe('Admin authentication feature', () => {
       .send({ email: 'test@example.com' });
 
     // const email = await emailPromise;
-    stopMailClient(maildev);
 
     chai.expect(res.status).to.be.eql(200);
     chai.expect(res.headers).to.have.property('content-type');
@@ -617,8 +558,8 @@ describe('Admin authentication feature', () => {
   // it should allow through reset attempts
   it('should allow through reset attempts', async function() {
 
-    support.init(['adminAuth', 'react'], getOptions(this.test.dbName));
-    await installTables(support);
+    support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+    await testHelpers.installTables(support);
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();

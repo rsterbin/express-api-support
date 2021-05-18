@@ -18,7 +18,7 @@ class MailerContext extends ContextBase {
     this.MailerError = class MailerError extends Error {
       constructor(message, error) {
         super(message);
-        console.log('Mailer error: ', error);
+        console.log('Mailer error: ', message, error);
         this.name = 'MailerError';
         this.prevErr = error;
       }
