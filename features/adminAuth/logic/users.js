@@ -81,7 +81,7 @@ class AdminAuthLogicUsers extends LogicBase {
     const extra = this.userFields.map(f => f.column).join(', ');
     let where = 'user_id = $1';
     if (!include_disabled) {
-        where += ' AND disabled IS FALSE';
+      where += ' AND disabled IS FALSE';
     }
     const sql = `
       SELECT user_id, email, disabled${extra === '' ? '' : ', ' + extra }

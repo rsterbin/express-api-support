@@ -50,7 +50,7 @@ const getNewDbName = function() {
   } while (newName in DB_NAMES);
   DB_NAMES[newName] = 1;
   return newName;
-}
+};
 
 const installTables = async function(support, prefix = '') {
   try {
@@ -64,7 +64,7 @@ const installTables = async function(support, prefix = '') {
 
 const newMailClient = function() {
   return new MailDev({ silent: true });
-}
+};
 
 const startMailClient = function(maildev) {
   return new Promise(resolve => maildev.listen(resolve));
@@ -72,7 +72,7 @@ const startMailClient = function(maildev) {
 
 const waitForOneEmail = function(maildev) {
   return new Promise(resolve => maildev.on('new', resolve));
-}
+};
 
 const stopMailClient = function(maildev) {
   return new Promise(resolve => maildev.close(resolve));
