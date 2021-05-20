@@ -42,8 +42,8 @@ class AdminAuthLogic {
   async getAllUsers (include_disabled = false) {
     return await this.users.getAll(include_disabled);
   }
-  async getUser (user_id) {
-    return await this.users.get(user_id);
+  async getUser (user_id, include_disabled = false) {
+    return await this.users.get(user_id, include_disabled);
   }
   async disableUser (user_id) {
     return await this.users.disable(user_id);
@@ -90,7 +90,7 @@ class AdminAuthLogic {
     if (!req.ok) {
       return req;
     }
-    return await this.reset.sendEmail(req.data.uid, req.data.token, req.data.expires);
+    return await this.reset.sendEmail(req.data.uid, email, req.data.token, req.data.expires);
   }
   async checkResetToken (email, token) {
     return await this.reset.checkToken(email, token);

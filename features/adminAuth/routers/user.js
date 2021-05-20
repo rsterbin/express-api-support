@@ -47,6 +47,11 @@ const getUserRouter = (feature) => {
     simpleOutput(await logic.getAllUsers(includeDisabled), res, env);
   });
 
+  // admin/user/view/:uid POST: view user info (someone else's)
+  router.post('/view/:uid', async function(req, res, next) {
+    simpleOutput(await logic.getUser(req.params.uid, true), res, env);
+  });
+
   // admin/user/update/:uid POST: update user info (someone else's)
   router.post('/update/:uid', async function(req, res, next) {
     simpleOutput(await logic.updateUser(req.params.uid, req.body), res, env);

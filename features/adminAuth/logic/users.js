@@ -60,10 +60,12 @@ class AdminAuthLogicUsers extends LogicBase {
     if (cols.length < 1) {
       return { ok: true, data: { updated: false } };
     }
+    vals.push(user_id);
     const sql = `
       WITH rows AS (
         UPDATE ${this.tableUsers}
         SET ${cols.map((c,i) => c + ' = $' + (i + 1)).join(', ')}
+        WHERE uid = ?
         RETURNING 1
       )
       SELECT count(*) AS affected FROM rows`;
@@ -75,12 +77,16 @@ class AdminAuthLogicUsers extends LogicBase {
     return { ok: true, data: { uid: user_id, updated: upd } };
   }
 
-  async get (user_id) {
+  async get (user_id, include_disabled = false) {
     const extra = this.userFields.map(f => f.column).join(', ');
+    let where = 'user_id = $1';
+    if (!include_disabled) {
+        where += ' AND disabled IS FALSE';
+    }
     const sql = `
       SELECT user_id, email, disabled${extra === '' ? '' : ', ' + extra }
       FROM ${this.tableUsers}
-      WHERE user_id = $1`;
+      WHERE ${where}`;
     const sth = await this.context.database.query(sql, [ user_id ]);
     if (sth.rows.length < 1) {
       return { ok: false, data: { code: 'USER_NOT_FOUND', status: 404, msg: 'No such user was found' } };

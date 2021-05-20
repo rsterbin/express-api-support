@@ -32,7 +32,7 @@ class AdminAuthLogicReset extends LogicBase {
       )
       INSERT INTO ${this.tableTokens} (user_id, token, expires)
       SELECT user_id, $2, NOW() + INTERVAL '${this.tokenLifetime}'
-      FROM ${this.tableUsers} WHERE email = $1
+      FROM ${this.tableUsers} WHERE email = $1 AND disabled IS FALSE
       RETURNING user_id, reset_id, expires`;
     const sth = await this.context.database.query(sql, [ email, hashed ]);
     if (sth.rows.length < 1) {
@@ -43,6 +43,7 @@ class AdminAuthLogicReset extends LogicBase {
       ok: true,
       data: {
         uid: row.user_id,
+        email: email,
         token: token,
         rid: row.reset_id,
         expires: row.expires
@@ -50,7 +51,7 @@ class AdminAuthLogicReset extends LogicBase {
     };
   }
 
-  async sendEmail(uid, token, expires) {
+  async sendEmail(uid, email, token, expires) {
     const user = await this.parent.getUser(uid);
     if (!user.ok) {
       return user;
@@ -61,24 +62,22 @@ class AdminAuthLogicReset extends LogicBase {
     // TODO: JSON Web Tokens? need to pass email address alongside token
 
     if (this.tokenStyle == 'slug') {
-      link += '/' + token;
+      link += email + '/' + token;
     } else {
-      link += '?token=' + token;
+      link += '?email=' + email + '&token=' + token;
     }
-    // console.log('AdminAuthLogicReset.sendEmail:link', link);
 
-    // TODO: remove convenience override once the client half is done
-    link = 'http://localhost2:3003/api/v1/admin/auth/reset || token: ' + token +
-      ' || email: ' + user.data.user.email;
-
-    // TODO: formatting for expires date
+    const userData = user.data.user;
     const payload = {
       clientUrl: this.feature.getSystemValue('clientUrl'),
       siteName: this.feature.getSystemValue('siteName'),
       link: link,
-      short: user.data.short,
+      debug: JSON.stringify({ token: token, link: link, email: email, user: userData }),
+      email: email,
+      user: userData,
       expires: expires
     };
+
     const sent = await this.context.mailer.send(
       user.data.user.email,
       'resetpw',
@@ -101,6 +100,7 @@ class AdminAuthLogicReset extends LogicBase {
       }
       return { ok: false, data: { code: 'MAIL_NOT_SENT', msg: msg, dev: dev } };
     }
+
     return { ok: true, data: { sent: true } };
   }
 

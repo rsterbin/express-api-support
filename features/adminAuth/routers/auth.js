@@ -13,11 +13,11 @@ const getAuthRouter = (feature) => {
   // /check POST: Check whether the admin session token is valid
   router.post('/check', async function(req, res, next) {
     // the middleware actually does the check for us, so all we need to do here is reply with a success message
-    res.json({
-      msg: 'Valid session',
+    res.json({ code: 'SUCCESS', msg: 'Success', data: {
+      valid: true,
       session: req.body.session,
       expires: res.locals.expires
-    });
+    } });
   });
 
   // /login POST: Log in
