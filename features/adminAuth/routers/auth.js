@@ -22,11 +22,6 @@ const getAuthRouter = (feature) => {
 
   // /login POST: Log in
   router.post('/login', async function(req, res, next) {
-    if (typeof(req.body) !== 'object') {
-      res.status(400);
-      res.json({ code: 'NO_DATA', msg: 'No data was provided' });
-      return;
-    }
     if (typeof(req.body.email) === 'undefined') {
       res.status(400);
       res.json({ code: 'EMAIL_REQUIRED', msg: 'Email is required' });
@@ -42,13 +37,8 @@ const getAuthRouter = (feature) => {
 
   // admin/session/logout POST: Deletes your session
   router.post('/logout', async function(req, res, next) {
-    if (typeof(req.body) !== 'object') {
-      res.status(400);
-      res.json({ code: 'NO_DATA', msg: 'No data was provided' });
-      return;
-    }
     if (typeof(req.body.session) !== 'object') {
-      res.status(403);
+      res.status(400);
       res.json({ code: 'SESSION_REQUIRED', msg: 'Session is required' });
       return;
     }
@@ -57,11 +47,6 @@ const getAuthRouter = (feature) => {
 
   // admin/auth/forgot POST: User forgot password; request reset
   router.post('/forgot', async function(req, res, next) {
-    if (typeof(req.body) !== 'object') {
-      res.status(400);
-      res.json({ code: 'NO_DATA', msg: 'No data was provided' });
-      return;
-    }
     if (typeof(req.body.email) === 'undefined') {
       res.status(400);
       res.json({ code: 'EMAIL_REQUIRED', msg: 'Email is required' });
@@ -72,11 +57,6 @@ const getAuthRouter = (feature) => {
 
   // admin/auth/reset POST: Reset password
   router.post('/reset', async function(req, res, next) {
-    if (typeof(req.body) !== 'object') {
-      res.status(400);
-      res.json({ code: 'NO_DATA', msg: 'No data was provided' });
-      return;
-    }
     if (typeof(req.body.email) === 'undefined') {
       res.status(400);
       res.json({ code: 'EMAIL_REQUIRED', msg: 'Email is required' });

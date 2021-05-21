@@ -44,8 +44,8 @@
       "required": false,
       "type": "integer",
       "from_env": "ADMIN_AUTH_RESET_TOKEN_LIFETIME",
-      "description": "Lifetime of a reset token, in hours",
-      "default": 24
+      "description": "Lifetime of a reset token, in seconds",
+      "default": 86400
     },
     "clientResetLink": {
       "required": false,

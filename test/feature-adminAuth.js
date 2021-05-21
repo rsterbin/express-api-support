@@ -315,8 +315,57 @@ describe('Admin authentication feature', () => {
 
   describe('Login and sessions', () => {
 
-    // TODO: Test no data, missing email, and missing password
-    // TODO: Test logout directly: no data, missing session, invalid session
+    it('should reject a request with no email address', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+      await testHelpers.installTables(support);
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({});
+
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body.code).to.be.eql('EMAIL_REQUIRED');
+      chai.expect(res.body.msg).to.be.eql('Email is required');
+
+    });
+
+    it('should reject a request with no password', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+      await testHelpers.installTables(support);
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com' });
+
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body.code).to.be.eql('PASSWORD_REQUIRED');
+      chai.expect(res.body.msg).to.be.eql('Password is required');
+
+    });
 
     it('should reject a missing user', async function() {
 
@@ -439,45 +488,6 @@ describe('Admin authentication feature', () => {
 
     });
 
-    it('should reject a logged-out session', async function() {
-
-      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
-      await testHelpers.installTables(support);
-      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
-
-      const app = express();
-      app.use(express.json());
-      support.middleware(app);
-      const supportRouters = support.getRouters(app);
-      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-      app.use('/api/admin/user', supportRouters.adminAuth.user);
-      support.handlers(app);
-
-      const login = await request(app)
-        .post('/api/admin/auth/login')
-        .set('Accept', 'application/json')
-        .send({ email: 'test@example.com', password: '12345' });
-      chai.expect(login.status).to.be.eql(200);
-      const session = login.body.data.session;
-
-      const logout = await request(app)
-        .post('/api/admin/auth/logout')
-        .set('Accept', 'application/json')
-        .send({ session: session });
-      chai.expect(logout.status).to.be.eql(200);
-
-      const res = await request(app)
-        .post('/api/admin/auth/check')
-        .set('Accept', 'application/json')
-        .send({ session: session });
-      chai.expect(res.status).to.be.eql(403);
-      chai.expect(res.headers).to.have.property('content-type');
-      chai.expect(res.headers['content-type']).to.match(/json/);
-      chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
-      chai.expect(res.body.msg).to.be.eql('Invalid session');
-
-    });
-
     it('should reject a timed-out session', async function() {
 
       // we need to run out the session (min length 1s)
@@ -582,6 +592,103 @@ describe('Admin authentication feature', () => {
 
     });
 
+    it('should reject a logout request with no session', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+      await testHelpers.installTables(support);
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/logout')
+        .set('Accept', 'application/json')
+        .send({});
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body.code).to.be.eql('SESSION_REQUIRED');
+      chai.expect(res.body.msg).to.be.eql('Session is required');
+
+    });
+
+    it('should reject a logout request with an invalid session', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const login = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com', password: '12345' });
+      chai.expect(login.status).to.be.eql(200);
+      const session = login.body.data.session;
+
+      const res = await request(app)
+        .post('/api/admin/auth/logout')
+        .set('Accept', 'application/json')
+        .send({ session: { ...session, sid: 'not-a-real-session-id' }});
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body.code).to.be.eql('SESSION_INVALID');
+      chai.expect(res.body.msg).to.be.eql('Session is invalid');
+
+    });
+
+    it('should reject a logged-out session', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const login = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com', password: '12345' });
+      chai.expect(login.status).to.be.eql(200);
+      const session = login.body.data.session;
+
+      const logout = await request(app)
+        .post('/api/admin/auth/logout')
+        .set('Accept', 'application/json')
+        .send({ session: session });
+      chai.expect(logout.status).to.be.eql(200);
+
+      const res = await request(app)
+        .post('/api/admin/auth/check')
+        .set('Accept', 'application/json')
+        .send({ session: session });
+      chai.expect(res.status).to.be.eql(403);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+      chai.expect(res.body.msg).to.be.eql('Invalid session');
+
+    });
+
     it('should not show a list of sessions when not requested', async function() {
 
       support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
@@ -660,8 +767,34 @@ describe('Admin authentication feature', () => {
 
   describe('Reset password loop', () => {
 
-    // TODO: forgot with no data and missing password
-    // TODO: reset with no data, missing password, and missing token
+    it('should reject a forgot-password request with no email address', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/forgot')
+        .set('Accept', 'application/json')
+        .send({});
+
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('EMAIL_REQUIRED');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Email is required');
+
+    });
 
     it('should reject a forgot-password request with an unknown user', async function() {
 
@@ -743,9 +876,327 @@ describe('Admin authentication feature', () => {
 
     });
 
-    it('should perform a password reset with a valid user and token', async function() {
+    it('should reject a password reset with no email address', async function() {
 
       support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { system: { environment: 'development' } }));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/reset')
+        .set('Accept', 'application/json')
+        .send({});
+
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('EMAIL_REQUIRED');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Email is required');
+
+    });
+
+    it('should reject a password reset with no token', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { system: { environment: 'development' } }));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/reset')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com' });
+
+      chai.expect(res.status).to.be.eql(400);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('RESET_TOKEN_REQUIRED');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Reset token is required');
+
+    });
+
+    it('should reject a password reset attempt with a user who doesn\'t exist', async function() {
+
+      // NB: We need the dev part of the response to distinguish between no
+      // session and invalid token, which we care about internally but don't
+      // want to actually send to the end user in production
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { system: { environment: 'development' } }));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const res = await request(app)
+        .post('/api/admin/auth/reset')
+        .set('Accept', 'application/json')
+        .send({ email: 'test2@example.com', token: 'not-a-real-token-but-should-not-check-anyway', password: 'abcdef' });
+
+      chai.expect(res.status).to.be.eql(403);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Token is invalid');
+      chai.expect(res.body).to.have.property('dev');
+      chai.expect(res.body.dev).to.be.eql('No unexpired tokens for this user');
+
+    });
+
+    it('should reject a password reset attempt with a user who didn\'t request one', async function() {
+
+      // NB: We need the dev part of the response to distinguish between no
+      // session and invalid token, which we care about internally but don't
+      // want to actually send to the end user in production
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { system: { environment: 'development' } }));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const login = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com', password: '12345' });
+      chai.expect(login.status).to.be.eql(200);
+      const session = login.body.data.session;
+
+      const userEmail = 'test2@example.com';
+      const create = await request(app)
+        .post('/api/admin/user/create')
+        .set('Accept', 'application/json')
+        .send({ session: session, email: userEmail, password: '67890' });
+      chai.expect(create.status).to.be.eql(200);
+      chai.expect(create.body).to.have.property('data');
+      chai.expect(create.body.data).to.have.property('uid');
+      const uid = create.body.data.uid;
+
+      const res = await request(app)
+        .post('/api/admin/auth/reset')
+        .set('Accept', 'application/json')
+        .send({ email: userEmail, token: 'not-a-real-token-but-should-not-check-anyway', password: 'abcdef' });
+
+      chai.expect(res.status).to.be.eql(403);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Token is invalid');
+      chai.expect(res.body).to.have.property('dev');
+      chai.expect(res.body.dev).to.be.eql('No unexpired tokens for this user');
+
+    });
+
+    it('should reject a password reset attempt with a valid user and invalid token', async function() {
+
+      // NB: We need the dev part of the response to distinguish between no
+      // session and invalid token, which we care about internally but don't
+      // want to actually send to the end user in production
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { system: { environment: 'development' } }));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const login = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com', password: '12345' });
+      chai.expect(login.status).to.be.eql(200);
+      const session = login.body.data.session;
+
+      const userEmail = 'test2@example.com';
+      const create = await request(app)
+        .post('/api/admin/user/create')
+        .set('Accept', 'application/json')
+        .send({ session: session, email: userEmail, password: '67890' });
+      chai.expect(create.status).to.be.eql(200);
+      chai.expect(create.body).to.have.property('data');
+      chai.expect(create.body.data).to.have.property('uid');
+      const uid = create.body.data.uid;
+
+      // adds the email on-receive listener as a single-use promise for the one we expect to be sent during the forget request
+      const forgotEmailPromise = testHelpers.waitForOneEmail(maildev);
+
+      const forgot = await request(app)
+        .post('/api/admin/auth/forgot')
+        .set('Accept', 'application/json')
+        .send({ email: userEmail });
+
+      chai.expect(forgot.status).to.be.eql(200);
+      chai.expect(forgot.headers).to.have.property('content-type');
+      chai.expect(forgot.headers['content-type']).to.match(/json/);
+      chai.expect(forgot.body).to.have.property('code');
+      chai.expect(forgot.body.code).to.be.eql('SUCCESS');
+      chai.expect(forgot.body).to.have.property('data');
+      chai.expect(forgot.body.data).to.have.property('sent');
+      chai.expect(forgot.body.data.sent).to.be.eql(true);
+
+      // We sent the email with html- and json-encoded debug data that we can then parse
+      // (see test/data/templates/resetpw/text.handlebars)
+      const email = await forgotEmailPromise;
+      let data = JSON.parse(decode(email.text));
+
+      chai.expect(data).to.have.property('email');
+      chai.expect(data.email).to.be.eql(userEmail);
+      chai.expect(data).to.have.property('user');
+      chai.expect(data.user).to.have.property('uid');
+      chai.expect(data.user.uid).to.be.eql(uid);
+      chai.expect(data).to.have.property('token');
+      const token = data.token;
+      chai.expect(data).to.have.property('link');
+      chai.expect(data.link).to.be.eql(`http://localhost:3000/reset?email=${userEmail}&token=${token}`);
+
+      // Use the token we got to reset the password
+      const res = await request(app)
+        .post('/api/admin/auth/reset')
+        .set('Accept', 'application/json')
+        .send({ email: userEmail, token: 'not-a-real-token', password: 'abcdef' });
+
+      chai.expect(res.status).to.be.eql(403);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Token is invalid');
+      chai.expect(res.body).to.have.property('dev');
+      chai.expect(res.body.dev).to.be.eql('Token does not match');
+
+    });
+
+    it('should reject a password reset with a valid user and expired token', async function() {
+
+      // we need to run out the reset token lifetime (min length 1s)
+      this.timeout(3000);
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData, { adminAuth: { 'resetTokenLifetime': 1 }, system: { environment: 'development' } }));
+      await testHelpers.installTables(support);
+      await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+      const app = express();
+      app.use(express.json());
+      support.middleware(app);
+      const supportRouters = support.getRouters(app);
+      app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+      app.use('/api/admin/user', supportRouters.adminAuth.user);
+      support.handlers(app);
+
+      const login = await request(app)
+        .post('/api/admin/auth/login')
+        .set('Accept', 'application/json')
+        .send({ email: 'test@example.com', password: '12345' });
+      chai.expect(login.status).to.be.eql(200);
+      const session = login.body.data.session;
+
+      const userEmail = 'test2@example.com';
+      const create = await request(app)
+        .post('/api/admin/user/create')
+        .set('Accept', 'application/json')
+        .send({ session: session, email: userEmail, password: '67890' });
+      chai.expect(create.status).to.be.eql(200);
+      chai.expect(create.body).to.have.property('data');
+      chai.expect(create.body.data).to.have.property('uid');
+      const uid = create.body.data.uid;
+
+      // adds the email on-receive listener as a single-use promise for the one we expect to be sent during the forget request
+      const forgotEmailPromise = testHelpers.waitForOneEmail(maildev);
+
+      const forgot = await request(app)
+        .post('/api/admin/auth/forgot')
+        .set('Accept', 'application/json')
+        .send({ email: userEmail });
+
+      chai.expect(forgot.status).to.be.eql(200);
+      chai.expect(forgot.headers).to.have.property('content-type');
+      chai.expect(forgot.headers['content-type']).to.match(/json/);
+      chai.expect(forgot.body).to.have.property('code');
+      chai.expect(forgot.body.code).to.be.eql('SUCCESS');
+      chai.expect(forgot.body).to.have.property('data');
+      chai.expect(forgot.body.data).to.have.property('sent');
+      chai.expect(forgot.body.data.sent).to.be.eql(true);
+
+      // We sent the email with html- and json-encoded debug data that we can then parse
+      // (see test/data/templates/resetpw/text.handlebars)
+      const email = await forgotEmailPromise;
+      let data = JSON.parse(decode(email.text));
+
+      chai.expect(data).to.have.property('email');
+      chai.expect(data.email).to.be.eql(userEmail);
+      chai.expect(data).to.have.property('user');
+      chai.expect(data.user).to.have.property('uid');
+      chai.expect(data.user.uid).to.be.eql(uid);
+      chai.expect(data).to.have.property('token');
+      const token = data.token;
+      chai.expect(data).to.have.property('link');
+      chai.expect(data.link).to.be.eql(`http://localhost:3000/reset?email=${userEmail}&token=${token}`);
+
+      // Wait for the session to expire
+      await testHelpers.sleep(1500);
+
+      // Then attempt to use the token
+      const newPassword = 'abcdef';
+      const res = await request(app)
+        .post('/api/admin/auth/reset')
+        .set('Accept', 'application/json')
+        .send({ email: userEmail, token: token, password: newPassword });
+
+      chai.expect(res.status).to.be.eql(403);
+      chai.expect(res.headers).to.have.property('content-type');
+      chai.expect(res.headers['content-type']).to.match(/json/);
+      chai.expect(res.body).to.have.property('code');
+      chai.expect(res.body.code).to.be.eql('TOKEN_INVALID');
+      chai.expect(res.body).to.have.property('msg');
+      chai.expect(res.body.msg).to.be.eql('Token is invalid');
+      chai.expect(res.body).to.have.property('dev');
+      chai.expect(res.body.dev).to.be.eql('No unexpired tokens for this user');
+
+    });
+
+    it('should perform a password reset with a valid user and token', async function() {
+
+      support.init(['adminAuth', 'react'], testHelpers.getOptions(this.test.testData));
       await testHelpers.installTables(support);
       await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
@@ -832,6 +1283,7 @@ describe('Admin authentication feature', () => {
     });
 
     // TODO: invoke mailing error to test failure to send email
+
 
     // TODO: it should reject a password reset attempt with an invalid token
     // TODO: it should reject a password reset attempt with an expired token

@@ -7,7 +7,7 @@ class AdminAuthLogicReset extends LogicBase {
     const prefix = this.feature.getConfigValue('tablePrefix');
     this.tableTokens = prefix + 'admin_reset_tokens';
     this.tableUsers = prefix + 'admin_users';
-    this.tokenLifetime = this.feature.getConfigValue('resetTokenLifetime') + ' hours';
+    this.tokenLifetime = this.feature.getConfigValue('resetTokenLifetime') + ' seconds';
     this.resetLink = this.feature.getSystemValue('clientUrl') + this.feature.getConfigValue('clientResetLink');
     this.tokenStyle = this.feature.getConfigValue('resetTokenStyle');
   }

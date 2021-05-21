@@ -92,7 +92,7 @@ class AdminAuthLogicSessions extends LogicBase {
       RETURNING session_id`;
     const sth = await this.context.database.query(sql, [ session_id ]);
     if (sth.rows.length < 1) {
-      return { ok: true, data: { sid: null } };
+      return { ok: false, data: { code: 'SESSION_INVALID', status: 400, msg: 'Session is invalid', dev: 'Lookup for session ID returned nothing' } };
     }
     const sid = sth.rows[0].session_id;
     return { ok: true, data: { sid: sid } };
