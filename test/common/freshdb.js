@@ -4,7 +4,7 @@ const pgtools = require('pgtools');
 const TestHelperBase = require('./base');
 const LocalConfig = require('../data/localConfig.json');
 
-TEST_DB_NAMES = {};
+const TEST_DB_NAMES = {};
 
 class FreshDatabaseTestHelper extends TestHelperBase {
 
@@ -22,7 +22,7 @@ class FreshDatabaseTestHelper extends TestHelperBase {
   addOptions(options, testData = {}) {
     if (this.created) {
       if (!('dbName' in testData)) {
-        throw new Error("Cannot fetch options without a test database name!");
+        throw new Error('Cannot fetch options without a test database name!');
       }
       options.database = { url: LocalConfig.database.urlBase + testData.dbName };
     }

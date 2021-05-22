@@ -1,7 +1,6 @@
 const MailDev = require('maildev');
 
 const TestHelperBase = require('./base');
-const LocalConfig = require('../data/localConfig.json');
 
 class MailDevTestHelper extends TestHelperBase {
 
@@ -11,7 +10,7 @@ class MailDevTestHelper extends TestHelperBase {
     this.running = false;
   }
 
-  addOptions(options, testData = {}) {
+  addOptions(options) {
     options.mailer = { templateDir: options.mailer.templateDir, ignoreTLS: true, from: 'info@example.com' };
     return options;
   }
@@ -46,11 +45,11 @@ class MailDevTestHelper extends TestHelperBase {
     }));
   }
 
-  async start(data = {}) {
+  async start() {
     await this.startMailClient();
   }
 
-  async stop(data = {}) {
+  async stop() {
     await this.stopMailClient();
   }
 

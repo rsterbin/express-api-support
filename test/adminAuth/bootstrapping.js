@@ -1,6 +1,4 @@
-const express = require('express');
 const chai = require('chai');
-const request = require('supertest');
 
 const TestHelper = require('../common');
 

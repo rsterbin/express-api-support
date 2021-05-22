@@ -2,7 +2,7 @@
 
 const importTest = function(name) {
   require('./adminAuth/' + name);
-}
+};
 
 describe('Admin authentication feature', () => {
 

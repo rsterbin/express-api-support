@@ -92,7 +92,7 @@ class TestHelpers {
       if (!('database' in LocalConfig) || !('urlBase' in LocalConfig.database)) {
         throw new Error('Missing database URL base (urlBase) in localConfig.json');
       }
-      if (!('database' in LocalConfig) || !'fallbackDbName' in LocalConfig.database) {
+      if (!('database' in LocalConfig) || !('fallbackDbName' in LocalConfig.database)) {
         throw new Error('Missing test database name (fallbackDbName) in localConfig.json');
       }
     }
@@ -111,7 +111,7 @@ class TestHelpers {
       await support.context.database.query('select * from ' + checkTable);
     } catch (e) {
       console.log('database install or check failed: ', e);
-      throw new Error("Installing tables, or checking they exist, failed");
+      throw new Error('Installing tables, or checking they exist, failed');
     }
   }
 

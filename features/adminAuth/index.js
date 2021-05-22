@@ -66,7 +66,7 @@ class FeatureAdminAuth extends Feature {
     const routers = {};
     routers.auth = authRouter(this);
     if (this.getConfigValue('includeUserRoutes')) {
-        routers.user = userRouter(this);
+      routers.user = userRouter(this);
     }
     return routers;
   }
