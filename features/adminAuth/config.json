@@ -78,7 +78,7 @@
       "type": "boolean",
       "from_env": "ADMIN_AUTH_INCLUDE_USER_ROUTES",
       "description": "Flag for whether the user create/edit/update/etc routes should be included",
-      "default": false
+      "default": true
     },
     "allowSessionsListRoute": {
       "required": false,

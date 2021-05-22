@@ -6,20 +6,9 @@ const LocalConfig = require('../data/localConfig.json');
 class MailDevTestHelper extends TestHelperBase {
 
   constructor(opts = {}) {
-    super();
+    super(opts);
     this.maildev = null;
     this.running = false;
-    if ('onlyBlocks' in opts && Array.isArray(opts.onlyBlocks)) {
-        this.onlyBlocks = opts.onlyBlocks;
-        this.allBlocks = false;
-    } else {
-        this.onlyBlocks = [];
-        if ('allBlocks' in opts) {
-            this.allBlocks = opts.allBlocks;
-        } else {
-            this.allBlocks = true;
-        }
-    }
   }
 
   addOptions(options, testData = {}) {
@@ -57,18 +46,12 @@ class MailDevTestHelper extends TestHelperBase {
     }));
   }
 
-  async beforeBlock(data = {}, name = '') {
-    if (this.allBlocks || this.onlyBlocks.includes(name)) {
-      await this.startMailClient();
-    }
-    return data;
+  async start(data = {}) {
+    await this.startMailClient();
   }
 
-  async afterBlock(data = {}, name = '') {
-    if (this.allBlocks || this.onlyBlocks.includes(name)) {
-      await this.stopMailClient();
-    }
-    return data;
+  async stop(data = {}) {
+    await this.stopMailClient();
   }
 
 }

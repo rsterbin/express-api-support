@@ -9,29 +9,8 @@ TEST_DB_NAMES = {};
 class FreshDatabaseTestHelper extends TestHelperBase {
 
   constructor(opts = {}) {
-    super();
-    if ('onlyTests' in opts && Array.isArray(opts.onlyTests)) {
-        this.onlyTests = opts.onlyTests;
-        this.allTests = false;
-    } else {
-        this.onlyTests = [];
-        if ('allTests' in opts) {
-            this.allTests = opts.allTests;
-        } else {
-            this.allTests = true;
-        }
-    }
-    if ('onlyBlocks' in opts && Array.isArray(opts.onlyBlocks)) {
-        this.onlyBlocks = opts.onlyBlocks;
-        this.allBlocks = false;
-    } else {
-        this.onlyBlocks = [];
-        if ('allBlocks' in opts) {
-            this.allBlocks = opts.allBlocks;
-        } else {
-            this.allBlocks = false;
-        }
-    }
+    super(opts);
+    this.created = false;
   }
 
   testLocalConfig() {
@@ -41,10 +20,12 @@ class FreshDatabaseTestHelper extends TestHelperBase {
   }
 
   addOptions(options, testData = {}) {
-    if (!('dbName' in testData)) {
-      throw new Error("Cannot fetch options without a test database name!");
+    if (this.created) {
+      if (!('dbName' in testData)) {
+        throw new Error("Cannot fetch options without a test database name!");
+      }
+      options.database = { url: LocalConfig.database.urlBase + testData.dbName };
     }
-    options.database = { url: LocalConfig.database.urlBase + testData.dbName };
     return options;
   }
 
@@ -57,41 +38,20 @@ class FreshDatabaseTestHelper extends TestHelperBase {
     return newName;
   }
 
-  async beforeBlock(data = {}, name = '') {
-    if (this.allBlocks || this.onlyBlocks.includes(name)) {
-      let newName = getNewDbName();
-      await pgtools.createdb(LocalConfig.database.createConfig, newName);
-      TEST_DB_NAMES[newName] = 'created';
-      data.dbName = newName;
-    }
+  async start(data = {}) {
+    let newName = this.getNewDbName();
+    await pgtools.createdb(LocalConfig.database.createConfig, newName);
+    TEST_DB_NAMES[newName] = 'created';
+    data.dbName = newName;
+    this.created = true;
     return data;
   }
 
-  async afterBlock(data = {}, name = '') {
-    if (this.allBlocks || this.onlyBlocks.includes(name)) {
-      await pgtools.dropdb(LocalConfig.database.createConfig, data.dbName);
-      TEST_DB_NAMES[data.dbName] = 'dropped';
-      data.dbName = null;
-    }
-    return data;
-  }
-
-  async beforeTest(data = {}, name = '') {
-    if (this.allTests || this.onlyTests.includes(name)) {
-      let newName = this.getNewDbName();
-      await pgtools.createdb(LocalConfig.database.createConfig, newName);
-      TEST_DB_NAMES[newName] = 'created';
-      data.dbName = newName;
-    }
-    return data;
-  }
-
-  async afterTest(data = {}, name = '') {
-    if (this.allTests || this.onlyTests.includes(name)) {
-      await pgtools.dropdb(LocalConfig.database.createConfig, data.dbName);
-      TEST_DB_NAMES[data.dbName] = 'dropped';
-      data.dbName = null;
-    }
+  async stop(data = {}) {
+    await pgtools.dropdb(LocalConfig.database.createConfig, data.dbName);
+    TEST_DB_NAMES[data.dbName] = 'dropped';
+    data.dbName = null;
+    this.created = false;
     return data;
   }
 
