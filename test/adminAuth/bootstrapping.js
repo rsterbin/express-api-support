@@ -1,38 +1,16 @@
 const chai = require('chai');
 
-const TestHelper = require('../common');
-
-const helper = new TestHelper()
-  .needsDatabase(true)
-  .usesFreshDatabases({
-    allTests: true
-  })
-  .needsMailer(true);
+const NEEDS = {
+  database: true,
+  mailer: true
+};
 
 describe('Bootstrapping', () => {
 
-  let blockData = {};
-  before(async function() {
-    await helper.beforeBlock(blockData, this.test.parent.title);
-  });
-  after(async function() {
-    await helper.afterBlock(blockData, this.test.parent.title);
-  });
-  beforeEach(async function () {
-    if (!('testData' in this.currentTest)) {
-      this.currentTest.testData = {};
-    }
-    this.currentTest.testData = await helper.beforeTest({}, this.currentTest.title);
-  });
-  afterEach(async function () {
-    this.timeout(120000);
-    this.currentTest.testData = await helper.afterTest(this.currentTest.testData, this.currentTest.title);
-  });
-
   it('should bootstrap a root user', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
@@ -50,8 +28,8 @@ describe('Bootstrapping', () => {
 
   it('should reject bootstrapping a second user', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     // first should work
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
@@ -82,14 +60,14 @@ describe('Bootstrapping', () => {
 
   it('should bootstrap a user with custom extra fields', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: {
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: {
       userFields: [
         { key: 'first', column: 'first_name', pgtype: 'text' },
         { key: 'last', column: 'last_name', pgtype: 'text' },
         { key: 'access', column: 'access_level', pgtype: 'integer' }
       ]
     } });
-    await helper.installTables();
+    await this.test.helper.installTables();
 
     await support.bootstrap({
       'adminAuth-email': 'test@example.com',

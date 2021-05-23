@@ -2,18 +2,14 @@ const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
 
-const support = require('../index');
+const NEED = {};
 
 describe('CORS middleware restrictions', () => {
-
-  afterEach(async function () {
-    await support.destroy();
-  });
 
   it('should reject requests with no origin header', async function () {
 
     const app = express();
-    support.init(['cors']);
+    const support = this.test.helper.initSupport(['cors'], NEED);
     app.use(express.json());
     support.middleware(app);
     app.use('/api/some-endpoint', function(req, res) {
@@ -34,7 +30,7 @@ describe('CORS middleware restrictions', () => {
   it('should reject requests with the wrong origin header', async function () {
 
     const app = express();
-    support.init(['cors']);
+    const support = this.test.helper.initSupport(['cors'], NEED);
     app.use(express.json());
     support.middleware(app);
     app.use('/api/some-endpoint', function(req, res) {
@@ -56,7 +52,7 @@ describe('CORS middleware restrictions', () => {
   it('should accept requests with the right origin header', async function () {
 
     const app = express();
-    support.init(['cors']);
+    const support = this.test.helper.initSupport(['cors'], NEED);
     app.use(express.json());
     support.middleware(app);
     app.use('/api/some-endpoint', function(req, res) {
@@ -76,7 +72,7 @@ describe('CORS middleware restrictions', () => {
   it('should reject requests with the wrong origin header when allowed origins are configured', async function () {
 
     const app = express();
-    support.init(['cors'], { cors: {
+    const support = this.test.helper.initSupport(['cors'], NEED, { cors: {
       devOrigins: [ 'http://localhost:9000', 'http://localhost:9001' ],
       prodOrigins: [ 'https://testprod.example.com' ]
     } });
@@ -101,7 +97,7 @@ describe('CORS middleware restrictions', () => {
   it('should reject requests with the wrong origin header when allowed origins are configured in dev mode', async function () {
 
     const app = express();
-    support.init(['cors'], {
+    const support = this.test.helper.initSupport(['cors'], NEED, {
       system: {
         environment: 'development'
       },
@@ -131,7 +127,7 @@ describe('CORS middleware restrictions', () => {
   it('should accept requests with the right origin header', async function () {
 
     const app = express();
-    support.init(['cors']);
+    const support = this.test.helper.initSupport(['cors'], NEED);
     app.use(express.json());
     support.middleware(app);
     app.use('/api/some-endpoint', function(req, res) {
@@ -151,7 +147,7 @@ describe('CORS middleware restrictions', () => {
   it('should accept requests with the right origin header when allowed origins are configured', async function () {
 
     const app = express();
-    support.init(['cors'], { cors: {
+    const support = this.test.helper.initSupport(['cors'], NEED, { cors: {
       devOrigins: [ 'http://localhost:9000', 'http://localhost:9001' ],
       prodOrigins: [ 'https://testprod.example.com' ]
     } });
@@ -174,7 +170,7 @@ describe('CORS middleware restrictions', () => {
   it('should accept requests with the right origin header when allowed origins are configured in dev mode', async function () {
 
     const app = express();
-    support.init(['cors'], {
+    const support = this.test.helper.initSupport(['cors'], NEED, {
       system: {
         environment: 'development'
       },

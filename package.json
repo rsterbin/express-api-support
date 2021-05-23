@@ -18,6 +18,9 @@
     "test": "nyc --reporter=text mocha",
     "lint": "./node_modules/.bin/eslint ."
   },
+  "mocha": {
+    "require": "test/common/hooks.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rsterbin/express-api-support.git"

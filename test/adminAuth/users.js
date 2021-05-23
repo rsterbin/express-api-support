@@ -2,39 +2,17 @@ const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
 
-const TestHelper = require('../common');
-
-const helper = new TestHelper()
-  .needsDatabase(true)
-  .usesFreshDatabases({
-    allTests: true
-  })
-  .needsMailer(true);
+const NEEDS = {
+  database: true,
+  mailer: true
+};
 
 describe('User management', () => {
 
-  let blockData = {};
-  before(async function() {
-    await helper.beforeBlock(blockData, this.test.parent.title);
-  });
-  after(async function() {
-    await helper.afterBlock(blockData, this.test.parent.title);
-  });
-  beforeEach(async function () {
-    if (!('testData' in this.currentTest)) {
-      this.currentTest.testData = {};
-    }
-    this.currentTest.testData = await helper.beforeTest({}, this.currentTest.title);
-  });
-  afterEach(async function () {
-    this.timeout(120000);
-    this.currentTest.testData = await helper.afterTest(this.currentTest.testData, this.currentTest.title);
-  });
-
   it('should not show a list of sessions when not requested', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -66,8 +44,8 @@ describe('User management', () => {
 
   it('should show a list of sessions when requested', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: { allowSessionsListRoute: true } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { allowSessionsListRoute: true } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -106,13 +84,20 @@ describe('User management', () => {
   });
 
 
-  // TODO: list of users should be available
-  // TODO: list of users should include disabled if requested
-  // TODO: list of users should include extra fields
-  // TODO: should be able to create a user
-  // TODO: should be able to create a user with extra fields
-  // TODO: should be able to disable a user
-  // TODO: should be able to re-enable a user
+  // TODO
+  it('should provide a list of users');
+  // TODO
+  it('should show a list of users with disabled if requested');
+  // TODO
+  it('should show a list of users with custom fields');
+  // TODO
+  it('should be able to create a user');
+  // TODO
+  it('should be able to create a user with extra fields');
+  // TODO
+  it('should be able to disable a user');
+  // TODO
+  it('should be able to re-enable a user');
 
 });
 

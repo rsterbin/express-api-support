@@ -1,0 +1,19 @@
+{
+  "module": {
+    "freshdb": {
+      "topLevel": false,
+      "testLevel": true,
+      "onlySuites": [
+        "Admin authentication feature"
+      ],
+      "skipTests": [
+        "should complain if no session info is present",
+        "should allow through non-admin routes"
+      ]
+    },
+    "maildev": {
+      "topLevel": true,
+      "testLevel": false
+    }
+  }
+}

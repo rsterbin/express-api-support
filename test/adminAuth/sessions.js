@@ -2,39 +2,17 @@ const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
 
-const TestHelper = require('../common');
-
-const helper = new TestHelper()
-  .needsDatabase(true)
-  .usesFreshDatabases({
-    allTests: true
-  })
-  .needsMailer(true);
+const NEEDS = {
+  database: true,
+  mailer: true
+};
 
 describe('Login and sessions', () => {
 
-  let blockData = {};
-  before(async function() {
-    await helper.beforeBlock(blockData, this.test.parent.title);
-  });
-  after(async function() {
-    await helper.afterBlock(blockData, this.test.parent.title);
-  });
-  beforeEach(async function () {
-    if (!('testData' in this.currentTest)) {
-      this.currentTest.testData = {};
-    }
-    this.currentTest.testData = await helper.beforeTest({}, this.currentTest.title);
-  });
-  afterEach(async function () {
-    this.timeout(120000);
-    this.currentTest.testData = await helper.afterTest(this.currentTest.testData, this.currentTest.title);
-  });
-
   it('should reject a request with no email address', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
@@ -59,8 +37,8 @@ describe('Login and sessions', () => {
 
   it('should reject a request with no password', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
@@ -85,8 +63,8 @@ describe('Login and sessions', () => {
 
   it('should reject a missing user', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
@@ -111,8 +89,8 @@ describe('Login and sessions', () => {
 
   it('should reject an incorrect password', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -138,8 +116,8 @@ describe('Login and sessions', () => {
 
   it('should log in a valid user', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -171,8 +149,8 @@ describe('Login and sessions', () => {
 
   it('should allow through a request if logged in', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -209,8 +187,8 @@ describe('Login and sessions', () => {
     // we need to run out the session (min length 1s)
     this.timeout(3000);
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: { sessionLength: 1 } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { sessionLength: 1 } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -234,7 +212,7 @@ describe('Login and sessions', () => {
       .send({ session: session });
     chai.expect(check.status).to.be.eql(200);
 
-    await helper.sleep(1500);
+    await this.test.helper.sleep(1500);
 
     const res = await request(app)
       .post('/api/admin/auth/check')
@@ -253,8 +231,8 @@ describe('Login and sessions', () => {
     // we need to refresh and then run out the session (min length 1s)
     this.timeout(50000);
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: { sessionLength: 1 } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { sessionLength: 1 } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -278,7 +256,7 @@ describe('Login and sessions', () => {
       .send({ session: session });
     chai.expect(check1.status).to.be.eql(200);
 
-    await helper.sleep(300);
+    await this.test.helper.sleep(300);
 
     const check2 = await request(app)
       .post('/api/admin/auth/check')
@@ -286,7 +264,7 @@ describe('Login and sessions', () => {
       .send({ session: session });
     chai.expect(check2.status).to.be.eql(200);
 
-    await helper.sleep(800);
+    await this.test.helper.sleep(800);
 
     const check3 = await request(app)
       .post('/api/admin/auth/check')
@@ -294,7 +272,7 @@ describe('Login and sessions', () => {
       .send({ session: session });
     chai.expect(check3.status).to.be.eql(200);
 
-    await helper.sleep(1500);
+    await this.test.helper.sleep(1500);
 
     const check4 = await request(app)
       .post('/api/admin/auth/check')
@@ -310,8 +288,8 @@ describe('Login and sessions', () => {
 
   it('should reject a logout request with no session', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
@@ -335,8 +313,8 @@ describe('Login and sessions', () => {
 
   it('should reject a logout request with an invalid session', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -368,8 +346,8 @@ describe('Login and sessions', () => {
 
   it('should reject a logged-out session', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();

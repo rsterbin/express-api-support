@@ -3,18 +3,14 @@ const chai = require('chai');
 const request = require('supertest');
 const fs = require('fs');
 
-const support = require('../index');
+const NEED = {};
 
 describe('Error handling with React passthrough', () => {
-
-  afterEach(async function () {
-    await support.destroy();
-  });
 
   it('should send a json 404 message within the API section', async function () {
 
     const app = express();
-    support.init(['react'], { react: { consoleLogErrors: false } });
+    const support = this.test.helper.initSupport(['react'], NEED);
     support.handlers(app);
 
     const res = await request(app).post('/api/not-found').send({});
@@ -29,7 +25,7 @@ describe('Error handling with React passthrough', () => {
   it('should send a user-defined error if the endpoint returns one', async function () {
 
     const app = express();
-    support.init(['react'], { react: { consoleLogErrors: false } });
+    const support = this.test.helper.initSupport(['react'], NEED);
     app.use(express.json());
     app.use('/api/custom', function(req, res) {
       if (!('session' in req.body)) {
@@ -55,7 +51,7 @@ describe('Error handling with React passthrough', () => {
     const html = fs.readFileSync(reactPath, 'utf8');
 
     const app = express();
-    support.init(['react'], { react: { consoleLogErrors: false, docIndex: reactPath } });
+    const support = this.test.helper.initSupport(['react'], NEED, { react: { docIndex: reactPath } });
     app.use(express.json());
     support.handlers(app);
 

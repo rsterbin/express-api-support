@@ -3,42 +3,17 @@ const chai = require('chai');
 const request = require('supertest');
 const { decode } = require('html-entities');
 
-const TestHelper = require('../common');
-
-const helper = new TestHelper()
-  .needsDatabase(true)
-  .usesFreshDatabases({
-    allTests: true
-  })
-  .needsMailer(true)
-  .usesMailDev({
-    allBlocks: true
-  });
+const NEEDS = {
+  database: true,
+  mailer: true
+};
 
 describe('Reset password loop', () => {
 
-  let blockData = {};
-  before(async function() {
-    await helper.beforeBlock(blockData, this.test.parent.title);
-  });
-  after(async function() {
-    await helper.afterBlock(blockData, this.test.parent.title);
-  });
-  beforeEach(async function () {
-    if (!('testData' in this.currentTest)) {
-      this.currentTest.testData = {};
-    }
-    this.currentTest.testData = await helper.beforeTest({}, this.currentTest.title);
-  });
-  afterEach(async function () {
-    this.timeout(120000);
-    this.currentTest.testData = await helper.afterTest(this.currentTest.testData, this.currentTest.title);
-  });
-
   it('should reject a forgot-password request with no email address', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -66,8 +41,8 @@ describe('Reset password loop', () => {
 
   it('should reject a forgot-password request with an unknown user', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -95,8 +70,8 @@ describe('Reset password loop', () => {
 
   it('should reject a forgot-password request with a disabled user', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -146,8 +121,8 @@ describe('Reset password loop', () => {
 
   it('should reject a password reset with no email address', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -175,8 +150,8 @@ describe('Reset password loop', () => {
 
   it('should reject a password reset with no token', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -208,8 +183,8 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { system: { environment: 'development' } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -243,8 +218,8 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { system: { environment: 'development' } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -292,8 +267,8 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { system: { environment: 'development' } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -322,7 +297,7 @@ describe('Reset password loop', () => {
     const uid = create.body.data.uid;
 
     // adds the email on-receive listener as a single-use promise for the one we expect to be sent during the forget request
-    const forgotEmailPromise = helper.waitForOneEmail();
+    const forgotEmailPromise = this.test.helper.waitForOneEmail();
 
     const forgot = await request(app)
       .post('/api/admin/auth/forgot')
@@ -380,8 +355,8 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: { 'resetTokenLifetime': 1 }, system: { environment: 'development' } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { 'resetTokenLifetime': 1 }, system: { environment: 'development' } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -410,7 +385,7 @@ describe('Reset password loop', () => {
     const uid = create.body.data.uid;
 
     // adds the email on-receive listener as a single-use promise for the one we expect to be sent during the forget request
-    const forgotEmailPromise = helper.waitForOneEmail();
+    const forgotEmailPromise = this.test.helper.waitForOneEmail();
 
     const forgot = await request(app)
       .post('/api/admin/auth/forgot')
@@ -442,7 +417,7 @@ describe('Reset password loop', () => {
     chai.expect(data.link).to.be.eql(`http://localhost:3000/reset?email=${userEmail}&token=${token}`);
 
     // Wait for the session to expire
-    await helper.sleep(1500);
+    await this.test.helper.sleep(1500);
 
     // Then attempt to use the token
     const newPassword = 'abcdef';
@@ -465,8 +440,8 @@ describe('Reset password loop', () => {
 
   it('should perform a password reset with a valid user and token', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -495,7 +470,7 @@ describe('Reset password loop', () => {
     const uid = create.body.data.uid;
 
     // adds the email on-receive listener as a single-use promise for the one we expect to be sent during the forget request
-    const forgotEmailPromise = helper.waitForOneEmail();
+    const forgotEmailPromise = this.test.helper.waitForOneEmail();
 
     const forgot = await request(app)
       .post('/api/admin/auth/forgot')
@@ -551,12 +526,14 @@ describe('Reset password loop', () => {
 
   });
 
-  // TODO: invoke mailing error to test failure to send email
-
-
-  // TODO: it should reject a password reset attempt with an invalid token
-  // TODO: it should reject a password reset attempt with an expired token
-  // TODO: it should reject a password reset attempt with a deleted token
+  // TODO
+  it('it should send an error when the mailer can\'t run');
+  // TODO
+  it('it should reject a password reset attempt with an invalid token');
+  // TODO
+  it('it should reject a password reset attempt with an expired token');
+  // TODO
+  it('it should reject a password reset attempt with a deleted token');
 
 });
 

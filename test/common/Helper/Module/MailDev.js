@@ -1,6 +1,6 @@
 const MailDev = require('maildev');
 
-const TestHelperBase = require('./base');
+const TestHelperBase = require('./Base');
 
 class MailDevTestHelper extends TestHelperBase {
 
@@ -11,7 +11,9 @@ class MailDevTestHelper extends TestHelperBase {
   }
 
   addOptions(options) {
-    options.mailer = { templateDir: options.mailer.templateDir, ignoreTLS: true, from: 'info@example.com' };
+    if (options.mailer) {
+      options.mailer = { templateDir: options.mailer.templateDir, ignoreTLS: true, from: 'info@example.com' };
+    }
     return options;
   }
 

@@ -1,66 +1,40 @@
 const fs = require('fs');
 
 const support = require('../../index');
+const Config = require('../data/config.json');
 const LocalConfig = require('../data/localConfig.json');
+
+const FreshDatabaseTestHelper = require('./Helper/Module/FreshDB');
+const MailDevTestHelper = require('./Helper/Module/mailDev');
 
 class TestHelpers {
 
   constructor() {
     this.use = {};
-    this.need = {
-      database: false,
-      mailer: false,
-      consoleErrors: false
-    };
+    this.use.freshDatabases = new FreshDatabaseTestHelper(Config.module.freshdb);
+    this.use.mailDev = new MailDevTestHelper(Config.module.maildev);
   }
 
-  usesFreshDatabases(opts = {}) {
-    const FreshDatabaseTestHelper = require('./freshdb');
-    this.use.freshDatabases = new FreshDatabaseTestHelper(opts);
-    return this;
-  }
-
-  usesMailDev(opts = {}) {
-    const MailDevTestHelper = require('./maildev');
-    this.use.mailDev = new MailDevTestHelper(opts);
-    return this;
-  }
-
-  needsDatabase(switchOn) {
-    this.need.database = switchOn;
-    return this;
-  }
-
-  needsMailer(switchOn) {
-    this.need.mailer = switchOn;
-    return this;
-  }
-
-  needsConsoleErrors(switchOn) {
-    this.need.consoleErrors = switchOn;
-    return this;
-  }
-
-  getOptions(testData = {}, custom = {}) {
+  getOptions(need = {}, custom = {}) {
     // Make sure all the settings we need are present first
-    this.testLocalConfig();
+    this.testLocalConfig(need);
 
     // Set up the elements we need
     let basic = {};
-    if (this.need.database) {
+    if (need.database) {
       basic.database = { url: LocalConfig.database.urlBase + LocalConfig.database.fallbackDbName };
     }
-    if (this.need.mailer) {
+    if (need.mailer) {
       const templatePath = fs.realpathSync(__dirname + '/../data/templates');
       basic.mailer = { templateDir: templatePath };
     }
-    if (!this.need.consoleErrors) {
+    if (!need.consoleErrors) {
       basic.react = { consoleLogErrors: false };
     }
 
     // Add any modules we're using
     for (const modName in this.use) {
-      basic = this.use[modName].addOptions(basic, testData[modName]);
+      basic = this.use[modName].addOptions(basic);
     }
 
     // Add custom settings for this specific call to support.init()
@@ -79,16 +53,16 @@ class TestHelpers {
     return merged;
   }
 
-  initSupport(features, testData, custom = {}) {
-    support.init(features, this.getOptions(testData, custom));
+  initSupport(features, needs = {}, custom = {}) {
+    support.init(features, this.getOptions(needs, custom));
     return support;
   }
 
-  testLocalConfig() {
+  testLocalConfig(need = {}) {
     if (typeof LocalConfig !== 'object' || LocalConfig === null) {
       throw new Error('Please copy test/data/localConfig.dist.json to test/data/localConfig.json and set values');
     }
-    if (this.need.database) {
+    if (need.database) {
       if (!('database' in LocalConfig) || !('urlBase' in LocalConfig.database)) {
         throw new Error('Missing database URL base (urlBase) in localConfig.json');
       }
@@ -102,9 +76,6 @@ class TestHelpers {
   }
 
   async installTables(checkTable = 'admin_users') {
-    if (!this.need.database) {
-      throw new Error('Cannot install tables with no database');
-    }
     try {
       const sql = support.generateSql();
       await support.context.database.query(sql);
@@ -150,21 +121,31 @@ class TestHelpers {
     return results;
   }
 
-  async beforeBlock(data = {}, name = '') {
-    return await this.mapModPromises((m) => this.use[m].beforeBlock(data[m], name));
+  getTimeout(hook, name = '', suites = []) {
+    if (hook == 'afterAll') {
+      return 120000; // TODO: base on what's on/off
+    } else {
+      return 500; // TODO: base on what's on/off
+    }
   }
 
-  async afterBlock(data = {}, name = '') {
-    return await this.mapModPromises((m) => this.use[m].afterBlock(data[m], name));
+  async beforeAll() {
+    await this.mapModPromises((m) => this.use[m].beforeAllHook());
   }
 
-  async beforeTest(data = {}, name = '') {
-    return await this.mapModPromises((m) => this.use[m].beforeTest(data[m], name));
+  async afterAll() {
+    await this.mapModPromises((m) => this.use[m].afterAllHook());
   }
 
-  async afterTest(data = {}, name = '') {
-    await support.destroy();
-    return await this.mapModPromises((m) => this.use[m].afterTest(data[m], name));
+  async beforeEach(name = '', suites = []) {
+    await this.mapModPromises((m) => this.use[m].beforeEachHook(name, suites));
+  }
+
+  async afterEach(name = '', suites = []) {
+    if (support.initialized) {
+      await support.destroy();
+    }
+    await this.mapModPromises((m) => this.use[m].afterEachHook(name, suites));
   }
 
 }

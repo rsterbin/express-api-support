@@ -2,60 +2,23 @@ const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
 
-const TestHelper = require('../common');
-
-const helper = new TestHelper()
-  .needsDatabase(true)
-  .usesFreshDatabases({
-    onlyTests: [
-      'should complain if the session is invalid',
-      'should work with a table prefix',
-      'should allow through forgot requests',
-      'should allow through reset attempts',
-    ]
-  })
-  .needsMailer(true)
-  .usesMailDev({
-    onlyTests: [
-      'should allow through forgot requests',
-    ]
-  });
-
-// 'should allow through non-admin routes',
-// 'should complain if no session info is present',
-// 'should complain if the db tables are missing',
-// 'should complain if the session is invalid',
-// 'should work with a table prefix',
-// 'should allow through forgot requests',
-// 'should allow through reset attempts',
+const NEEDS = {
+  database: true,
+  mailer: true
+};
 
 describe('Route restrictions', () => {
-
-  let blockData = {};
-  before(async function() {
-    await helper.beforeBlock(blockData, this.test.parent.title);
-  });
-  after(async function() {
-    await helper.afterBlock(blockData, this.test.parent.title);
-  });
-  beforeEach(async function () {
-    this.currentTest.testData = await helper.beforeTest({}, this.currentTest.title);
-  });
-  afterEach(async function () {
-    this.timeout(120000);
-    this.currentTest.testData = await helper.afterTest(this.currentTest.testData, this.currentTest.title);
-  });
 
   it('should allow through non-admin routes', async function() {
 
     const app = express();
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
     app.use('/api/admin/auth', supportRouters.adminAuth.auth);
     app.use('/api/admin/user', supportRouters.adminAuth.user);
-    app.use('/api/custom', helper.basicRoute);
+    app.use('/api/custom', this.test.helper.basicRoute);
     support.handlers(app);
 
     const res = await request(app)
@@ -76,7 +39,7 @@ describe('Route restrictions', () => {
   it('should complain if no session info is present', async function() {
 
     const app = express();
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
@@ -102,7 +65,7 @@ describe('Route restrictions', () => {
   it('should complain if the db tables are missing', async function() {
 
     const app = express();
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
@@ -127,8 +90,8 @@ describe('Route restrictions', () => {
 
   it('should complain if the session is invalid', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
@@ -153,8 +116,8 @@ describe('Route restrictions', () => {
 
   it('should work with a table prefix', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: { tablePrefix: 'pfx_' } });
-    await helper.installTables('pfx_admin_users');
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { tablePrefix: 'pfx_' } });
+    await this.test.helper.installTables('pfx_admin_users');
 
     const app = express();
     app.use(express.json());
@@ -179,8 +142,8 @@ describe('Route restrictions', () => {
 
   it('should allow through forgot requests', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
@@ -208,8 +171,8 @@ describe('Route restrictions', () => {
   // it should allow through reset attempts
   it('should allow through reset attempts', async function() {
 
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData);
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();

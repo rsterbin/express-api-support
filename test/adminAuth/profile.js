@@ -2,39 +2,17 @@ const express = require('express');
 const chai = require('chai');
 const request = require('supertest');
 
-const TestHelper = require('../common');
-
-const helper = new TestHelper()
-  .needsDatabase(true)
-  .usesFreshDatabases({
-    allTests: true
-  })
-  .needsMailer(true);
+const NEEDS = {
+  database: true,
+  mailer: true
+};
 
 describe('User profile changes', () => {
 
-  let blockData = {};
-  before(async function() {
-    await helper.beforeBlock(blockData, this.test.parent.title);
-  });
-  after(async function() {
-    await helper.afterBlock(blockData, this.test.parent.title);
-  });
-  beforeEach(async function () {
-    if (!('testData' in this.currentTest)) {
-      this.currentTest.testData = {};
-    }
-    this.currentTest.testData = await helper.beforeTest({}, this.currentTest.title);
-  });
-  afterEach(async function () {
-    this.timeout(120000);
-    this.currentTest.testData = await helper.afterTest(this.currentTest.testData, this.currentTest.title);
-  });
+  it('should not show the user routes if turned off', async function() {
 
-  it('the user routes should not appear if turned off', async function() {
-
-    const support = helper.initSupport(['adminAuth', 'react'], this.test.testData, { adminAuth: { includeUserRoutes: false } });
-    await helper.installTables();
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { includeUserRoutes: false } });
+    await this.test.helper.installTables();
     await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
 
     const app = express();
@@ -63,10 +41,12 @@ describe('User profile changes', () => {
 
   });
 
-
-  // TODO: the user routes should not appear if turned off
-  // TODO: the user should be able to update personal info
-  // TODO: the user should be able to update their password
+  // TODO
+  it('should allow the user to update their personal info');
+  // TODO
+  it('should allow the user to update their custom personal info');
+  // TODO
+  it('should allow the user to update their password');
 
 });
 
