@@ -98,7 +98,7 @@ class AdminAuthLogicReset extends LogicBase {
         msg = 'Error while sending mail';
         dev = sent.message;
       }
-      return { ok: false, data: { code: 'MAIL_NOT_SENT', msg: msg, dev: dev } };
+      return { ok: false, data: { code: 'MAIL_NOT_SENT', status: 500, msg: msg, dev: dev } };
     }
 
     return { ok: true, data: { sent: true } };

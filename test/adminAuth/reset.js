@@ -526,8 +526,53 @@ describe('Reset password loop', () => {
 
   });
 
-  // TODO
-  it('it should send an error when the mailer can\'t run');
+  it('it should send an error when the mailer can\'t run', async function() {
+
+    // fake port = cannot access MailDev
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { mailer: { port: 9999 } });
+    await this.test.helper.installTables();
+    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    support.handlers(app);
+
+    const login = await request(app)
+      .post('/api/admin/auth/login')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', password: '12345' });
+    chai.expect(login.status).to.be.eql(200);
+    const session = login.body.data.session;
+
+    const userEmail = 'test2@example.com';
+    const create = await request(app)
+      .post('/api/admin/user/create')
+      .set('Accept', 'application/json')
+      .send({ session: session, email: userEmail, password: '67890' });
+    chai.expect(create.status).to.be.eql(200);
+    chai.expect(create.body).to.have.property('data');
+    chai.expect(create.body.data).to.have.property('uid');
+    const uid = create.body.data.uid;
+
+    const res = await request(app)
+      .post('/api/admin/auth/forgot')
+      .set('Accept', 'application/json')
+      .send({ email: userEmail });
+
+    chai.expect(res.status).to.be.eql(500);
+    chai.expect(res.headers).to.have.property('content-type');
+    chai.expect(res.headers['content-type']).to.match(/json/);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body.code).to.be.eql('MAIL_NOT_SENT');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body.msg).to.be.eql('Mail send failed');
+
+  });
+
   // TODO
   it('it should reject a password reset attempt with an invalid token');
   // TODO

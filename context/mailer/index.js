@@ -88,6 +88,7 @@ class MailerContext extends ContextBase {
       return e;
     }
     let payload = { ...mvars };
+    // TODO: find out why this isn't being included
     if (this.parent.context.client) {
       payload = { ...payload, client: this.parent.context.client.mailerPayload() };
     }
