@@ -15,10 +15,13 @@ class MailerContext extends ContextBase {
     this.name = contextConfig.name;
     this.transport = null;
     this.templates = {};
+    const parent = this;
     this.MailerError = class MailerError extends Error {
       constructor(message, error) {
         super(message);
-        console.log('Mailer error: ', message, error);
+        if (parent.getSystemValue('consoleLogErrors')) {
+          console.log('Mailer error: ', message, error);
+        }
         this.name = 'MailerError';
         this.prevErr = error;
       }

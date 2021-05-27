@@ -7,10 +7,13 @@ class FeatureBase {
     this.requiredContext = [];
     this.configSpec = {};
     this.name = null;
+    const parent = this;
     this.FeatureError = class FeatureError extends Error {
       constructor(message, error) {
         super(message);
-        console.log('API Support feature error: ', error);
+        if (parent.getSystemValue('consoleLogErrors')) {
+          console.log('API Support feature error: ', message, error);
+        }
         this.name = 'FeatureError';
         this.prevErr = error;
       }

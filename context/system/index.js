@@ -10,7 +10,7 @@ class SystemContext extends ContextBase {
     super();
     this.configSpec = contextConfig.spec;
     this.name = contextConfig.name;
-    this.settingNames = [ 'environment', 'siteName', 'apiUrl', 'clientUrl', 'apiUrlPrefix', 'expressPath', 'matchApi' ];
+    this.settingNames = [ 'environment', 'siteName', 'apiUrl', 'clientUrl', 'apiUrlPrefix', 'expressPath', 'matchApi', 'consoleLogErrors' ];
     this.setup = false;
     this.defaultExpressPath = null;
     this.defaultMatchApi = null;

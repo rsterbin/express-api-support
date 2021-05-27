@@ -31,6 +31,14 @@ class ApiSupport {
     return Object.keys(FEATURES).sort();
   }
 
+  getFeature(name) {
+    for (const feature of this.features) {
+      if (feature.name === name) {
+        return feature;
+      }
+    }
+  }
+
   init(features = [], options = {}, addSpec = {}) {
     if (this.initialized) {
       // TODO: Custom error

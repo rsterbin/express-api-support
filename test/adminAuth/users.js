@@ -13,7 +13,7 @@ describe('User management', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -46,7 +46,7 @@ describe('User management', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { allowSessionsListRoute: true } });
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());

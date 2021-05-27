@@ -11,6 +11,7 @@ class FeatureReact extends FeatureBase {
     super();
     this.configSpec = featureConfig.spec;
     this.name = featureConfig.name;
+    // TODO: move consoleLogErrors from this feature to system level
   }
 
   handlers(app) {

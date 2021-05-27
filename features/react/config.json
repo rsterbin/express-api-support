@@ -32,13 +32,6 @@
       "from_env": "REACT_404_MESSAGE",
       "description": "The message to return on 404 errors",
       "default": "Endpoint not found"
-    },
-    "consoleLogErrors": {
-      "required": false,
-      "type": "boolean",
-      "from_env": "REACT_CONSOLE_LOG_ERRORS",
-      "description": "Whether to console-log errors before returning",
-      "default": true
     }
   }
 }

@@ -14,7 +14,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -43,7 +43,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -72,7 +72,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -123,7 +123,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -152,7 +152,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -185,7 +185,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -220,7 +220,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -269,7 +269,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -357,7 +357,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { 'resetTokenLifetime': 1 }, system: { environment: 'development' } });
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -442,7 +442,7 @@ describe('Reset password loop', () => {
 
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());
@@ -531,7 +531,7 @@ describe('Reset password loop', () => {
     // fake port = cannot access MailDev
     const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { mailer: { port: 9999 } });
     await this.test.helper.installTables();
-    await support.bootstrap({ 'adminAuth-email': 'test@example.com', 'adminAuth-password': '12345' });
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
 
     const app = express();
     app.use(express.json());

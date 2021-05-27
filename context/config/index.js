@@ -170,6 +170,7 @@ class ConfigContext extends ContextBase {
     } else {
       generic = 'Config value "' + key + '" has a problem';
     }
+    // NB: Since config bootstrapping happens before we know the consoleLogErrors setting, always log
     if (spec.description) {
       console.log(generic + '\n  - Key Description: ' + spec.description);
     } else {

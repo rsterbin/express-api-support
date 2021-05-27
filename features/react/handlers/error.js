@@ -5,7 +5,7 @@ const splitReactFromApi = (feature) => {
   const jsonUrls = feature.getConfigValue('jsonUrls');
   const viewUrls = feature.getConfigValue('viewUrls');
   const msg404 = feature.getConfigValue('message404');
-  const logErrors = feature.getConfigValue('consoleLogErrors');
+  const logErrors = feature.getSystemValue('consoleLogErrors');
   const reactPath = feature.getConfigValue('docIndex');
 
   // If we can't get reactPath, issue a warning -- it's not critical, but

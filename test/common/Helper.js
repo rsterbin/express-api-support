@@ -7,29 +7,36 @@ const LocalConfig = require('../data/localConfig.json');
 const FreshDatabaseTestHelper = require('./Helper/Module/FreshDB');
 const MailDevTestHelper = require('./Helper/Module/mailDev');
 
+const NEED_DEFAULT = {
+  database: false,
+  mailer: false,
+  consoleErrors: false
+};
+
 class TestHelpers {
 
   constructor() {
     this.use = {};
     this.use.freshDatabases = new FreshDatabaseTestHelper(Config.module.freshdb);
     this.use.mailDev = new MailDevTestHelper(Config.module.maildev);
+    this.currentlyNeed = NEED_DEFAULT;
   }
 
-  getOptions(need = {}, custom = {}) {
+  getOptions(custom = {}) {
     // Make sure all the settings we need are present first
-    this.testLocalConfig(need);
+    this.testLocalConfig();
 
     // Set up the elements we need
     let basic = {};
-    if (need.database) {
+    if (this.currentlyNeed.database) {
       basic.database = { url: LocalConfig.database.urlBase + LocalConfig.database.fallbackDbName };
     }
-    if (need.mailer) {
+    if (this.currentlyNeed.mailer) {
       const templatePath = fs.realpathSync(__dirname + '/../data/templates');
       basic.mailer = { templateDir: templatePath };
     }
-    if (!need.consoleErrors) {
-      basic.react = { consoleLogErrors: false };
+    if (!this.currentlyNeed.consoleErrors) {
+      basic.system = { consoleLogErrors: false };
     }
 
     // Add any modules we're using
@@ -53,16 +60,17 @@ class TestHelpers {
     return merged;
   }
 
-  initSupport(features, needs = {}, custom = {}) {
-    support.init(features, this.getOptions(needs, custom));
+  initSupport(features, need = {}, custom = {}) {
+    this.currentlyNeed = { ...NEED_DEFAULT, ...need };
+    support.init(features, this.getOptions(custom));
     return support;
   }
 
-  testLocalConfig(need = {}) {
+  testLocalConfig() {
     if (typeof LocalConfig !== 'object' || LocalConfig === null) {
       throw new Error('Please copy test/data/localConfig.dist.json to test/data/localConfig.json and set values');
     }
-    if (need.database) {
+    if (this.currentlyNeed.database) {
       if (!('database' in LocalConfig) || !('urlBase' in LocalConfig.database)) {
         throw new Error('Missing database URL base (urlBase) in localConfig.json');
       }
@@ -84,6 +92,20 @@ class TestHelpers {
       console.log('database install or check failed: ', e);
       throw new Error('Installing tables, or checking they exist, failed');
     }
+  }
+
+  async bootstrapUser(email, password, extra = {}, table = 'admin_users') {
+    if (!support.featureNames().includes('adminAuth')) {
+      throw new Error('Admin auth feature is not initialized');
+    }
+    const args = { 'adminAuth-email': email, 'adminAuth-password': password };
+    for (const key in extra) {
+      args['adminAuth-' + key] = extra[key];
+    }
+    await support.bootstrap(args);
+    let user = {};
+    const sth = await support.context.database.query('SELECT * FROM ' + table + ' ORDER BY user_id');
+    return sth.rows;
   }
 
   sleep (ms) {
@@ -143,6 +165,7 @@ class TestHelpers {
 
   async afterEach(name = '', suites = []) {
     if (support.initialized) {
+      this.currentlyNeed = NEED_DEFAULT;
       await support.destroy();
     }
     await this.mapModPromises((m) => this.use[m].afterEachHook(name, suites));

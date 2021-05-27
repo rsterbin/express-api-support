@@ -47,6 +47,13 @@
       "type": "string",
       "from_env": "API_EXPRESS_PATH",
       "description": "The path to express on your filesystem (detected automatically if called from app.js)"
+    },
+    "consoleLogErrors": {
+      "required": false,
+      "type": "boolean",
+      "from_env": "CONSOLE_LOG_ERRORS",
+      "description": "Whether to console-log errors before returning",
+      "default": true
     }
   }
 }
