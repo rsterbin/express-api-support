@@ -226,6 +226,13 @@ class ConfigContext extends ContextBase {
       return fallback;
     }
   }
+
+  async destroy() {
+    this.fetched = false;
+    this.vals = {};
+    this.spec = {};
+  }
+
 }
 
 module.exports = new ConfigContext();

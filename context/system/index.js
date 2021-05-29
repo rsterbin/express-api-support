@@ -64,6 +64,12 @@ class SystemContext extends ContextBase {
     return this.getSettings()[key];
   }
 
+  async destroy() {
+    this.setup = false;
+    this.defaultExpressPath = null;
+    this.defaultMatchApi = null;
+  }
+
 }
 
 module.exports = new SystemContext();
