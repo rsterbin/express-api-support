@@ -11,7 +11,7 @@ describe('Bootstrapping', () => {
 
   it('should bootstrap a root user', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
     await this.test.helper.installTables();
 
     const users = await this.test.helper.bootstrapUser('test@example.com', '12345');
@@ -32,7 +32,7 @@ describe('Bootstrapping', () => {
     // second should fail
     const errtype = support.getFeature('adminAuth').AdminAuthError;
     await chai.expect(this.test.helper.bootstrapUser('test2@example.com', '12345')).to.eventually
-      .be.rejectedWith("[CANNOT_BOOTSTRAP] You cannot bootstrap the admin when there are already users")
+      .be.rejectedWith('[CANNOT_BOOTSTRAP] You cannot bootstrap the admin when there are already users')
       .and.be.an.instanceOf(errtype)
       .and.have.property('code', 'CANNOT_BOOTSTRAP');
 
@@ -45,7 +45,7 @@ describe('Bootstrapping', () => {
 
   it('should bootstrap a user with custom extra fields', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: {
+    this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: {
       userFields: [
         { key: 'first', column: 'first_name', pgtype: 'text' },
         { key: 'last', column: 'last_name', pgtype: 'text' },

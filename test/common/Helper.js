@@ -103,7 +103,6 @@ class TestHelpers {
       args['adminAuth-' + key] = extra[key];
     }
     await support.bootstrap(args);
-    let user = {};
     const sth = await support.context.database.query('SELECT * FROM ' + table + ' ORDER BY user_id');
     return sth.rows;
   }

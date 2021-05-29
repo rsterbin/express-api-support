@@ -66,7 +66,7 @@ class TestHelperBase {
     }
     if (this.onlyTests.length > 0) {
       if (!this.onlyTests.includes(name)) {
-        return false
+        return false;
       }
     }
     return true;

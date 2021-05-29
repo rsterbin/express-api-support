@@ -556,7 +556,6 @@ describe('Reset password loop', () => {
     chai.expect(create.status).to.be.eql(200);
     chai.expect(create.body).to.have.property('data');
     chai.expect(create.body.data).to.have.property('uid');
-    const uid = create.body.data.uid;
 
     const res = await request(app)
       .post('/api/admin/auth/forgot')

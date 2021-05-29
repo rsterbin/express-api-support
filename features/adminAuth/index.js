@@ -16,7 +16,6 @@ class FeatureAdminAuth extends Feature {
     this.configSpec = featureConfig.spec;
     this.configSpec.userFields.type = this.validateUserFields;
     this.name = featureConfig.name;
-    const parent = this;
     this.AdminAuthError = class AdminAuthError extends this.FeatureError {
       constructor(code, message, error) {
         super('[' + code + '] ' + message, error);
