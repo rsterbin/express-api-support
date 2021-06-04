@@ -79,7 +79,7 @@ class ConfigContext extends ContextBase {
       try {
         return parse(found);
       } catch (e) {
-        this._throwBootstrappingError('wrongtype', fullKey, spec);
+        this._throwBootstrappingError('wrongtype', fullKey, spec, e);
       }
     }
     switch (parse) {
@@ -102,7 +102,7 @@ class ConfigContext extends ContextBase {
         try {
           return JSON.parse(found);
         } catch (e) {
-          this._throwBootstrappingError('wrongtype', fullKey, spec);
+          this._throwBootstrappingError('wrongtype', fullKey, spec, e);
         }
         break;
       default:
@@ -113,8 +113,12 @@ class ConfigContext extends ContextBase {
   _typeCheck(fullKey, found, expected, spec) {
     let ok = true;
     if (typeof(expected) === 'function') {
-      if (!expected(found)) {
-        ok = false;
+      try {
+        if (!expected(found)) {
+          ok = false;
+        }
+      } catch (e) {
+        this._throwBootstrappingError('wrongtype', fullKey, spec, e);
       }
     } else {
       switch (expected) {
@@ -161,7 +165,7 @@ class ConfigContext extends ContextBase {
     }
   }
 
-  _throwBootstrappingError(errtype, key, spec) {
+  _throwBootstrappingError(errtype, key, spec, err = null) {
     let generic = '';
     if (errtype == 'required') {
       generic = 'Config value "' + key + '" is required and cannot be found';
@@ -171,11 +175,15 @@ class ConfigContext extends ContextBase {
       generic = 'Config value "' + key + '" has a problem';
     }
     // NB: Since config bootstrapping happens before we know the consoleLogErrors setting, always log
+    let consoleErr = generic;
     if (spec.description) {
-      console.log(generic + '\n  - Key Description: ' + spec.description);
-    } else {
-      console.log(generic);
+      consoleErr += '\n  - Key Description: ' + spec.description;
     }
+    if (err !== null && 'message' in err) {
+      consoleErr += '\n  - Source Error: ' + err.message;
+    }
+    console.log(consoleErr);
+    // TODO: custom error to include all relevant data, ESPECIALLY source error
     throw new Error(generic + '; cannot proceed');
   }
 

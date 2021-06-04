@@ -60,9 +60,9 @@ class TestHelpers {
     return merged;
   }
 
-  initSupport(features, need = {}, custom = {}) {
+  initSupport(features, need = {}, custom = {}, customSpec = {}) {
     this.currentlyNeed = { ...NEED_DEFAULT, ...need };
-    support.init(features, this.getOptions(custom));
+    support.init(features, this.getOptions(custom), customSpec);
     return support;
   }
 
