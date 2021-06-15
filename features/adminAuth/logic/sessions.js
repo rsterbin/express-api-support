@@ -42,6 +42,7 @@ class AdminAuthLogicSessions extends LogicBase {
     );
   }
 
+ // TODO: return "uid" and "sid" rather than "user_id" and session_id"
   async getAllActive () {
     await this.clearInactive();
     const sql = `

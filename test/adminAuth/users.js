@@ -83,9 +83,47 @@ describe('User management', () => {
 
   });
 
+  it('should provide a list of users', async function() {
 
-  // TODO
-  it('should provide a list of users');
+    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    await this.test.helper.installTables();
+    await this.test.helper.bootstrapUser('test@example.com', '12345');
+
+    const app = express();
+    app.use(express.json());
+    support.middleware(app);
+    const supportRouters = support.getRouters(app);
+    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    support.handlers(app);
+
+    const login = await request(app)
+      .post('/api/admin/auth/login')
+      .set('Accept', 'application/json')
+      .send({ email: 'test@example.com', password: '12345' });
+    chai.expect(login.status).to.be.eql(200);
+    const session = login.body.data.session;
+
+    const check = await request(app)
+      .post('/api/admin/user/list')
+      .set('Accept', 'application/json')
+      .send({ session: session });
+
+    chai.expect(check.status).to.be.eql(200);
+    chai.expect(check.headers).to.have.property('content-type');
+    chai.expect(check.headers['content-type']).to.match(/json/);
+    chai.expect(check.body).to.have.property('data');
+    chai.expect(check.body.data).to.have.property('users');
+    chai.expect(check.body.data.users).to.have.lengthOf(1);
+    chai.expect(check.body.data.users[0]).to.have.property('email');
+    chai.expect(check.body.data.users[0]).to.have.property('uid');
+    chai.expect(check.body.data.users[0]).to.have.property('disabled');
+    chai.expect(check.body.data.users[0].uid).to.be.eql(session.uid);
+    chai.expect(check.body.data.users[0].email).to.be.eql('test@example.com');
+    chai.expect(check.body.data.users[0].disabled).to.be.eql(false);
+
+  });
+
   // TODO
   it('should show a list of users with disabled if requested');
   // TODO
