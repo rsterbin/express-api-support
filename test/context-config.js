@@ -171,10 +171,45 @@ describe('Configuration context module', () => {
 
   });
 
-  // TODO: get coverage on a decent chunk of these lines -- 22,69,82,87,92-96,105-107,117,123,126-133,139,144,149,154,160-182,187-190,196,222,229
+  it('should throw a bootstrapping error if a custom required key is not found', async function () {
+
+    process.env.MYAPP_CUSTOM_STRING = 'bananas';
+    process.env.MYAPP_CUSTOM_BOOLEAN = '1';
+    process.env.MYAPP_CUSTOM_VALIDATED = '123456789';
+    process.env.MYAPP_CUSTOM_PARSED = 'my name is: "George" / my friend is: "Jane Smith"';
+
+    const config = { myApp: {} };
+
+    const app = express();
+    const support = this.test.helper.initSupport([], NEED, config, CUSTOM_SPEC);
+    app.use(express.json());
+    support.middleware(app);
+    app.use('/api/some-endpoint', function(req, res) {
+      try {
+        const config = support.getContext('config');
+        res.status(200).json({ code: 'SUCCESS', data: {
+          customStringArg: config.get('myApp.customStringArg'),
+        } });
+      } catch (e) {
+        res.status(500).json({ code: 'BOOTSTRAPPING_ERROR', msg: e.message, dev: `${e}` });
+      }
+    });
+    support.handlers(app);
+
+    const res = await request(app).post('/api/some-endpoint').send({});
+
+    chai.expect(res.status).to.be.eql(500);
+    chai.expect(res.body).to.have.property('code');
+    chai.expect(res.body).to.have.property('msg');
+    chai.expect(res.body).to.have.property('dev');
+    chai.expect(res.body.code).to.be.eql('BOOTSTRAPPING_ERROR');
+    chai.expect(res.body.msg).to.be.eql('Config value "myApp.customStringArg" is required and cannot be found; cannot proceed');
+    chai.expect(res.body.dev).to.match(/Key Description: My app setting for string, required, passed by arg/);
+
+  });
+
+  // TODO: get coverage on a decent chunk of these lines -- 22,82,87,92-96,105-107,117,123,126-133,139,144,149,154,160-182,187-190,196,222,229
   // ... arranged in order of how much I care:
-  // 69: throw error if required but not found
-  it('should throw a bootstrapping error if a custom required key is not found');
   // 82: throw error if parse function did (env var) + confirm a user-defined error caused it
   it('should throw a bootstrapping error if a custom parse function did');
   // NEW: throw error if type check function did

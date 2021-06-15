@@ -10,6 +10,27 @@ class ConfigContext extends ContextBase {
     this.fetched = false;
     this.vals = {};
     this.spec = {};
+    this.ConfigError = class ConfigError extends Error {
+      constructor(message, error = null, keyDescription = null) {
+        super(message);
+        this.name = 'MailerError';
+        this.prevErr = error;
+        this.keyDescription = keyDescription;
+      }
+      toString() {
+        let buffer = this.message;
+        if (this.keyDescription) {
+          buffer += '\n  - Key Description: ' + this.keyDescription;
+        }
+        if (this.prevErr !== null && 'message' in this.prevErr) {
+          buffer += '\n  - Source Error: ' + this.prevErr.message;
+        }
+        if (this.stack) {
+          buffer += '\n  - Stack: ' + this.stack;
+        }
+        return buffer;
+      }
+    };
   }
 
   invoke(spec, options) {
@@ -174,17 +195,7 @@ class ConfigContext extends ContextBase {
     } else {
       generic = 'Config value "' + key + '" has a problem';
     }
-    // NB: Since config bootstrapping happens before we know the consoleLogErrors setting, always log
-    let consoleErr = generic;
-    if (spec.description) {
-      consoleErr += '\n  - Key Description: ' + spec.description;
-    }
-    if (err !== null && 'message' in err) {
-      consoleErr += '\n  - Source Error: ' + err.message;
-    }
-    console.log(consoleErr);
-    // TODO: custom error to include all relevant data, ESPECIALLY source error
-    throw new Error(generic + '; cannot proceed');
+    throw new this.ConfigError(generic + '; cannot proceed', err, spec.description);
   }
 
   _override(pointTo, fullKey, newVal) {
