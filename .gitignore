@@ -1,5 +1,6 @@
 # Config
 test/data/localConfig.json
+test/data/configs/tmp.json
 
 # Logs
 logs

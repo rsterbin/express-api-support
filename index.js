@@ -39,6 +39,7 @@ class ApiSupport {
     }
   }
 
+  // TODO: Need a way to request contexts without features
   init(features = [], options = {}, addSpec = {}) {
     if (this.initialized) {
       // TODO: Custom error
@@ -64,6 +65,7 @@ class ApiSupport {
       feature: {},
       context: {},
     };
+    // TODO: add scaffolding for custom spec so apps don't have to send it as part of the options object, eg `{ myApp: {} }`
 
     for (const ft of features) {
       if (ft in FEATURES) {
