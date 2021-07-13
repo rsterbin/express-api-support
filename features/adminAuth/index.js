@@ -109,6 +109,7 @@ class FeatureAdminAuth extends Feature {
         if (!('adminAuth-password' in argv)) {
           throw new this.AdminAuthError('PASSWORD_REQUIRED', 'Password is required');
         }
+        return true;
       });
   }
 
