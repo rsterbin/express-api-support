@@ -41,9 +41,7 @@ const splitReactFromApi = (feature) => {
     } else if (handleWith === 'json') {
       res.status(err.status || 500);
       if (logErrors) {
-        if (err.status !== 404) {
-          console.log(err);
-        }
+        console.log(err);
       }
       let msg = err.status === 404 ? msg404 : err.message;
       const json = { code: 'UNEXPECTED', msg: msg, original: req.originalUrl };

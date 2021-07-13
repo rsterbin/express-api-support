@@ -17,7 +17,7 @@ class FeatureReact extends FeatureBase {
   handlers(app) {
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {
-      next(createError(404, '[404] ' + req.originalUrl + ' not found'));
+      next(createError(404));
     });
     app.use(handler(this));
   }

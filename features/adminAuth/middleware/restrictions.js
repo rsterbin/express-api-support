@@ -27,16 +27,17 @@ const requireAdminAuth = (feature) => {
     }
 
     // everything else: make sure we have session data (session ID, user ID, token)
-    if (typeof(req.body) !== 'object' || req.body == null) {
+    if (typeof(req.body) !== 'object') {
       res.status(400);
       res.json({ code: 'NO_DATA', msg: 'No data was provided' });
       return;
     }
-    if (typeof(req.body.session) !== 'object' || req.body.session == null) {
+    if (typeof(req.body.session) !== 'object') {
       res.status(400);
       res.json({ code: 'NO_SESSION', msg: 'No session data was provided' });
       return;
     }
+    const session = req.body.session;
     if (!session.sid) {
       res.status(403);
       res.json({ code: 'SESSION_ID_REQUIRED', msg: 'Session ID is required' });
