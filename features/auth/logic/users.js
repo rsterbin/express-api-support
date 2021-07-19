@@ -2,12 +2,12 @@ const emailValidator = require('email-validator');
 
 const LogicBase = require('./base'); 
 
-class AdminAuthLogicUsers extends LogicBase {
+class AuthLogicUsers extends LogicBase {
   constructor() { super(); }
 
   setup() {
     const prefix = this.feature.getConfigValue('tablePrefix');
-    this.tableUsers = prefix + 'admin_users';
+    this.tableUsers = prefix + 'users';
     this.userFields = this.feature.getConfigValue('userFields');
   }
 
@@ -190,4 +190,4 @@ class AdminAuthLogicUsers extends LogicBase {
   }
 }
 
-module.exports = new AdminAuthLogicUsers();
+module.exports = new AuthLogicUsers();

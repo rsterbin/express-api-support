@@ -11,19 +11,19 @@ describe('Login and sessions', () => {
 
   it('should reject a request with no email address', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({});
 
@@ -37,19 +37,19 @@ describe('Login and sessions', () => {
 
   it('should reject a request with no password', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com' });
 
@@ -63,19 +63,19 @@ describe('Login and sessions', () => {
 
   it('should reject a missing user', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
 
@@ -89,7 +89,7 @@ describe('Login and sessions', () => {
 
   it('should reject an incorrect password', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -97,12 +97,12 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '67890' });
 
@@ -116,7 +116,7 @@ describe('Login and sessions', () => {
 
   it('should log in a valid user', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -124,12 +124,12 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
 
@@ -149,7 +149,7 @@ describe('Login and sessions', () => {
 
   it('should allow through a request if logged in', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -157,19 +157,19 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const res = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
 
@@ -187,7 +187,7 @@ describe('Login and sessions', () => {
     // we need to run out the session (min length 1s)
     this.timeout(3000);
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { sessionLength: 1 } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { auth: { sessionLength: 1 } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -195,19 +195,19 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const check = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check.status).to.be.eql(200);
@@ -215,7 +215,7 @@ describe('Login and sessions', () => {
     await this.test.helper.sleep(1500);
 
     const res = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(res.status).to.be.eql(403);
@@ -231,7 +231,7 @@ describe('Login and sessions', () => {
     // we need to refresh and then run out the session (min length 1s)
     this.timeout(50000);
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { sessionLength: 1 } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { auth: { sessionLength: 1 } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -239,19 +239,19 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const check1 = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check1.status).to.be.eql(200);
@@ -259,7 +259,7 @@ describe('Login and sessions', () => {
     await this.test.helper.sleep(300);
 
     const check2 = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check2.status).to.be.eql(200);
@@ -267,7 +267,7 @@ describe('Login and sessions', () => {
     await this.test.helper.sleep(800);
 
     const check3 = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check3.status).to.be.eql(200);
@@ -275,7 +275,7 @@ describe('Login and sessions', () => {
     await this.test.helper.sleep(1500);
 
     const check4 = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check4.status).to.be.eql(403);
@@ -288,19 +288,19 @@ describe('Login and sessions', () => {
 
   it('should reject a logout request with no session', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
 
     const app = express();
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/logout')
+      .post('/api/auth/logout')
       .set('Accept', 'application/json')
       .send({});
     chai.expect(res.status).to.be.eql(400);
@@ -313,7 +313,7 @@ describe('Login and sessions', () => {
 
   it('should reject a logout request with an invalid session', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -321,19 +321,19 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const res = await request(app)
-      .post('/api/admin/auth/logout')
+      .post('/api/auth/logout')
       .set('Accept', 'application/json')
       .send({ session: { ...session, sid: 'not-a-real-session-id' }});
     chai.expect(res.status).to.be.eql(400);
@@ -346,7 +346,7 @@ describe('Login and sessions', () => {
 
   it('should reject a logged-out session', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -354,25 +354,25 @@ describe('Login and sessions', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const logout = await request(app)
-      .post('/api/admin/auth/logout')
+      .post('/api/auth/logout')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(logout.status).to.be.eql(200);
 
     const res = await request(app)
-      .post('/api/admin/auth/check')
+      .post('/api/auth/check')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(res.status).to.be.eql(403);

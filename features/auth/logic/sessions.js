@@ -1,12 +1,12 @@
 const LogicBase = require('./base'); 
 
-class AdminAuthLogicSessions extends LogicBase {
+class AuthLogicSessions extends LogicBase {
   constructor() { super(); }
 
   setup() {
     const prefix = this.feature.getConfigValue('tablePrefix');
-    this.tableSessions = prefix + 'admin_sessions';
-    this.tableUsers = prefix + 'admin_users';
+    this.tableSessions = prefix + 'sessions';
+    this.tableUsers = prefix + 'users';
     this.sessionLength = this.feature.getConfigValue('sessionLength') + ' seconds';
   }
 
@@ -101,4 +101,4 @@ class AdminAuthLogicSessions extends LogicBase {
 
 }
 
-module.exports = new AdminAuthLogicSessions();
+module.exports = new AuthLogicSessions();

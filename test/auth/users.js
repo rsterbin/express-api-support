@@ -11,7 +11,7 @@ describe('User management', () => {
 
   it('should not show a list of sessions when not requested', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -19,19 +19,19 @@ describe('User management', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const check = await request(app)
-      .post('/api/admin/auth/sessions')
+      .post('/api/auth/sessions')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check.status).to.be.eql(404);
@@ -44,7 +44,7 @@ describe('User management', () => {
 
   it('should show a list of sessions when requested', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { allowSessionsListRoute: true } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { auth: { allowSessionsListRoute: true } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -52,19 +52,19 @@ describe('User management', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const check = await request(app)
-      .post('/api/admin/auth/sessions')
+      .post('/api/auth/sessions')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check.status).to.be.eql(200);
@@ -85,7 +85,7 @@ describe('User management', () => {
 
   it('should provide a list of users', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -93,19 +93,19 @@ describe('User management', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const check = await request(app)
-      .post('/api/admin/user/list')
+      .post('/api/user/list')
       .set('Accept', 'application/json')
       .send({ session: session });
 

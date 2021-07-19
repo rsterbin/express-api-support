@@ -11,7 +11,7 @@ describe('User profile changes', () => {
 
   it('should not show the user routes if turned off', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { includeUserRoutes: false } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { auth: { includeUserRoutes: false } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -19,18 +19,18 @@ describe('User profile changes', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
+    app.use('/api/auth', supportRouters.auth.auth);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const check = await request(app)
-      .post('/api/admin/user')
+      .post('/api/user')
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(check.status).to.be.eql(404);

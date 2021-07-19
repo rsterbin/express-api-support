@@ -8,7 +8,7 @@ const restrictions = require('./middleware/restrictions');
 const featureConfig = require('./config.json');
 const logic = require('./logic');
 
-class FeatureAdminAuth extends Feature {
+class FeatureAuth extends Feature {
 
   constructor() {
     super();
@@ -16,23 +16,23 @@ class FeatureAdminAuth extends Feature {
     this.configSpec = featureConfig.spec;
     this.configSpec.userFields.type = this.validateUserFields;
     this.name = featureConfig.name;
-    this.AdminAuthError = class AdminAuthError extends this.FeatureError {
+    this.AuthError = class AuthError extends this.FeatureError {
       constructor(code, message, error) {
         super('[' + code + '] ' + message, error);
-        this.name = 'AdminAuthError';
+        this.name = 'AuthError';
         this.code = code;
       }
     };
   }
 
   getCustomDefault(name) {
-    if (name === 'matchAdmin' || name === 'mountPoint') {
+    if (name === 'matchSection' || name === 'authMountPoint') {
       const apiUrlPrefix = this.getSystemValue('apiUrlPrefix');
-      if (name === 'matchAdmin') {
-        return '^' + apiUrlPrefix + '/admin/';
+      if (name === 'matchSection') {
+        return '^' + apiUrlPrefix + '/';
       }
-      if (name === 'mountPoint') {
-        return apiUrlPrefix + '/admin/auth';
+      if (name === 'authMountPoint') {
+        return apiUrlPrefix + '/auth';
       }
     }
     return undefined;
@@ -94,20 +94,20 @@ class FeatureAdminAuth extends Feature {
       secretNote = ' (must match your secret bootstrap password!)';
     }
     return argsParser
-      .option('adminAuth-email', {
-        describe: 'The email address for the first user in the admin',
+      .option('auth-email', {
+        describe: 'The email address for the first user',
         type: 'string'
       })
-      .option('adminAuth-password', {
-        describe: 'The password for the first user in the admin' + secretNote,
+      .option('auth-password', {
+        describe: 'The password for the first user' + secretNote,
         type: 'string'
       })
       .check((argv) => {
-        if (!('adminAuth-email' in argv)) {
-          throw new this.AdminAuthError('EMAIL_REQUIRED', 'Email is required');
+        if (!('auth-email' in argv)) {
+          throw new this.AuthError('EMAIL_REQUIRED', 'Email is required');
         }
-        if (!('adminAuth-password' in argv)) {
-          throw new this.AdminAuthError('PASSWORD_REQUIRED', 'Password is required');
+        if (!('auth-password' in argv)) {
+          throw new this.AuthError('PASSWORD_REQUIRED', 'Password is required');
         }
         return true;
       });
@@ -118,8 +118,8 @@ class FeatureAdminAuth extends Feature {
     logic.init(this);
     const options = {};
     for (const key in argv) {
-      if (key.match(/^adminAuth-/)) {
-        const myname = key.replace(/^adminAuth-/, '');
+      if (key.match(/^auth-/)) {
+        const myname = key.replace(/^auth-/, '');
         options[myname] = argv[key];
       }
     }
@@ -127,10 +127,10 @@ class FeatureAdminAuth extends Feature {
     if (out.ok) {
       return true;
     } else {
-      throw new this.AdminAuthError(out.data.code, out.data.msg);
+      throw new this.AuthError(out.data.code, out.data.msg);
     }
   }
 
 }
 
-module.exports = new FeatureAdminAuth();
+module.exports = new FeatureAuth();

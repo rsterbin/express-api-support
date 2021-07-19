@@ -1,18 +1,18 @@
 
 const logic = require('../logic');
 
-const requireAdminAuth = (feature) => {
+const requireAuth = (feature) => {
 
   logic.init(feature);
 
   const allowAll = feature.getConfigValue('allowAll');
-  const matchAdmin = feature.getConfigValue('matchAdmin');
+  const matchSection = feature.getConfigValue('matchSection');
   const mountPoint = feature.getConfigValue('authMountPoint');
   const usesBootstrap = feature.getConfigValue('allowBootstrapRoute');
 
   const middleware = async (req, res, next) => {
 
-    if (allowAll || !req.originalUrl.match(matchAdmin)) {
+    if (allowAll || !req.originalUrl.match(matchSection)) {
       return next();
     }
 
@@ -27,12 +27,12 @@ const requireAdminAuth = (feature) => {
     }
 
     // everything else: make sure we have session data (session ID, user ID, token)
-    if (typeof(req.body) !== 'object' || req.body !== null) {
+    if (typeof(req.body) !== 'object' || req.body === null) {
       res.status(400);
       res.json({ code: 'NO_DATA', msg: 'No data was provided' });
       return;
     }
-    if (typeof(req.body.session) !== 'object' || req.body.session !== null) {
+    if (typeof(req.body.session) !== 'object' || req.body.session === null) {
       res.status(400);
       res.json({ code: 'NO_SESSION', msg: 'No session data was provided' });
       return;
@@ -77,4 +77,4 @@ const requireAdminAuth = (feature) => {
   return middleware;
 };
 
-module.exports = requireAdminAuth;
+module.exports = requireAuth;

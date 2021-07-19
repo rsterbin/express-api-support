@@ -3,7 +3,7 @@ const Feature = require('./features/base');
 const Context = require('./context/base');
 
 const FEATURES = {
-  adminAuth: 'lazy',
+  auth: 'lazy',
   cors: 'lazy',
   react: 'lazy',
 };

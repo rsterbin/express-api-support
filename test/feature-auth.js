@@ -1,10 +1,10 @@
-// Tests for the adminAuth feature
+// Tests for the auth feature
 
 const importTest = function(name) {
-  require('./adminAuth/' + name);
+  require('./auth/' + name);
 };
 
-describe('Admin authentication feature', () => {
+describe('Authentication feature', () => {
 
   importTest('restrictions');
   importTest('bootstrapping');

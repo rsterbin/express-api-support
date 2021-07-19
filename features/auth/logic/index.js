@@ -3,7 +3,7 @@ const sessionsLogic = require('./sessions');
 const resetLogic = require('./reset');
 const usersLogic = require('./users');
 
-class AdminAuthLogic {
+class AuthLogic {
 
   constructor() {
     this.sessions = this.wrap(sessionsLogic);
@@ -115,7 +115,7 @@ class AdminAuthLogic {
       return all;
     }
     if (all.data.users.length > 0) {
-      return { ok: false, data: { status: 409, code: 'CANNOT_BOOTSTRAP', msg: 'You cannot bootstrap the admin when there are already users' } };
+      return { ok: false, data: { status: 409, code: 'CANNOT_BOOTSTRAP', msg: 'You cannot bootstrap when there are already users' } };
     }
     const secretCode = this.feature.getConfigValue('secretBootstrapPassword');
     if (secretCode) {
@@ -129,4 +129,4 @@ class AdminAuthLogic {
 
 }
 
-module.exports = new AdminAuthLogic();
+module.exports = new AuthLogic();

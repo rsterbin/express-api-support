@@ -12,7 +12,7 @@ describe('Reset password loop', () => {
 
   it('should reject a forgot-password request with no email address', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -20,12 +20,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({});
 
@@ -41,7 +41,7 @@ describe('Reset password loop', () => {
 
   it('should reject a forgot-password request with an unknown user', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -49,12 +49,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({ email: 'test2@example.com' });
 
@@ -70,7 +70,7 @@ describe('Reset password loop', () => {
 
   it('should reject a forgot-password request with a disabled user', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -78,19 +78,19 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
     const session = login.body.data.session;
 
     const create = await request(app)
-      .post('/api/admin/user/create')
+      .post('/api/user/create')
       .set('Accept', 'application/json')
       .send({ session: session, email: 'test2@example.com', password: '67890' });
     chai.expect(create.status).to.be.eql(200);
@@ -99,13 +99,13 @@ describe('Reset password loop', () => {
     const uid = create.body.data.uid;
 
     const disable = await request(app)
-      .post('/api/admin/user/disable/' + uid)
+      .post('/api/user/disable/' + uid)
       .set('Accept', 'application/json')
       .send({ session: session });
     chai.expect(disable.status).to.be.eql(200);
 
     const res = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({ email: 'test2@example.com' });
 
@@ -121,7 +121,7 @@ describe('Reset password loop', () => {
 
   it('should reject a password reset with no email address', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -129,12 +129,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({});
 
@@ -150,7 +150,7 @@ describe('Reset password loop', () => {
 
   it('should reject a password reset with no token', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -158,12 +158,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com' });
 
@@ -183,7 +183,7 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { system: { environment: 'development' } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -191,12 +191,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const res = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({ email: 'test2@example.com', token: 'not-a-real-token-but-should-not-check-anyway', password: 'abcdef' });
 
@@ -218,7 +218,7 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { system: { environment: 'development' } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -226,12 +226,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
@@ -239,13 +239,13 @@ describe('Reset password loop', () => {
 
     const userEmail = 'test2@example.com';
     const create = await request(app)
-      .post('/api/admin/user/create')
+      .post('/api/user/create')
       .set('Accept', 'application/json')
       .send({ session: session, email: userEmail, password: '67890' });
     chai.expect(create.status).to.be.eql(200);
 
     const res = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({ email: userEmail, token: 'not-a-real-token-but-should-not-check-anyway', password: 'abcdef' });
 
@@ -267,7 +267,7 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { system: { environment: 'development' } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { system: { environment: 'development' } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -275,12 +275,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
@@ -288,7 +288,7 @@ describe('Reset password loop', () => {
 
     const userEmail = 'test2@example.com';
     const create = await request(app)
-      .post('/api/admin/user/create')
+      .post('/api/user/create')
       .set('Accept', 'application/json')
       .send({ session: session, email: userEmail, password: '67890' });
     chai.expect(create.status).to.be.eql(200);
@@ -300,7 +300,7 @@ describe('Reset password loop', () => {
     const forgotEmailPromise = this.test.helper.waitForOneEmail();
 
     const forgot = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({ email: userEmail });
 
@@ -330,7 +330,7 @@ describe('Reset password loop', () => {
 
     // Use the token we got to reset the password
     const res = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({ email: userEmail, token: 'not-a-real-token', password: 'abcdef' });
 
@@ -355,7 +355,7 @@ describe('Reset password loop', () => {
     // session and invalid token, which we care about internally but don't
     // want to actually send to the end user in production
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { adminAuth: { 'resetTokenLifetime': 1 }, system: { environment: 'development' } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { auth: { 'resetTokenLifetime': 1 }, system: { environment: 'development' } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -363,12 +363,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
@@ -376,7 +376,7 @@ describe('Reset password loop', () => {
 
     const userEmail = 'test2@example.com';
     const create = await request(app)
-      .post('/api/admin/user/create')
+      .post('/api/user/create')
       .set('Accept', 'application/json')
       .send({ session: session, email: userEmail, password: '67890' });
     chai.expect(create.status).to.be.eql(200);
@@ -388,7 +388,7 @@ describe('Reset password loop', () => {
     const forgotEmailPromise = this.test.helper.waitForOneEmail();
 
     const forgot = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({ email: userEmail });
 
@@ -422,7 +422,7 @@ describe('Reset password loop', () => {
     // Then attempt to use the token
     const newPassword = 'abcdef';
     const res = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({ email: userEmail, token: token, password: newPassword });
 
@@ -440,7 +440,7 @@ describe('Reset password loop', () => {
 
   it('should perform a password reset with a valid user and token', async function() {
 
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS);
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS);
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -448,12 +448,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
@@ -461,7 +461,7 @@ describe('Reset password loop', () => {
 
     const userEmail = 'test2@example.com';
     const create = await request(app)
-      .post('/api/admin/user/create')
+      .post('/api/user/create')
       .set('Accept', 'application/json')
       .send({ session: session, email: userEmail, password: '67890' });
     chai.expect(create.status).to.be.eql(200);
@@ -473,7 +473,7 @@ describe('Reset password loop', () => {
     const forgotEmailPromise = this.test.helper.waitForOneEmail();
 
     const forgot = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({ email: userEmail });
 
@@ -504,7 +504,7 @@ describe('Reset password loop', () => {
     // Use the token we got to reset the password
     const newPassword = 'abcdef';
     const reset = await request(app)
-      .post('/api/admin/auth/reset')
+      .post('/api/auth/reset')
       .set('Accept', 'application/json')
       .send({ email: userEmail, token: token, password: newPassword });
 
@@ -519,7 +519,7 @@ describe('Reset password loop', () => {
 
     // Attempt a login with the new password
     const check = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: userEmail, password: newPassword });
     chai.expect(check.status).to.be.eql(200);
@@ -529,7 +529,7 @@ describe('Reset password loop', () => {
   it('it should send an error when the mailer can\'t run', async function() {
 
     // fake port = cannot access MailDev
-    const support = this.test.helper.initSupport(['adminAuth', 'react'], NEEDS, { mailer: { port: 9999 } });
+    const support = this.test.helper.initSupport(['auth', 'react'], NEEDS, { mailer: { port: 9999 } });
     await this.test.helper.installTables();
     await this.test.helper.bootstrapUser('test@example.com', '12345');
 
@@ -537,12 +537,12 @@ describe('Reset password loop', () => {
     app.use(express.json());
     support.middleware(app);
     const supportRouters = support.getRouters(app);
-    app.use('/api/admin/auth', supportRouters.adminAuth.auth);
-    app.use('/api/admin/user', supportRouters.adminAuth.user);
+    app.use('/api/auth', supportRouters.auth.auth);
+    app.use('/api/user', supportRouters.auth.user);
     support.handlers(app);
 
     const login = await request(app)
-      .post('/api/admin/auth/login')
+      .post('/api/auth/login')
       .set('Accept', 'application/json')
       .send({ email: 'test@example.com', password: '12345' });
     chai.expect(login.status).to.be.eql(200);
@@ -550,7 +550,7 @@ describe('Reset password loop', () => {
 
     const userEmail = 'test2@example.com';
     const create = await request(app)
-      .post('/api/admin/user/create')
+      .post('/api/user/create')
       .set('Accept', 'application/json')
       .send({ session: session, email: userEmail, password: '67890' });
     chai.expect(create.status).to.be.eql(200);
@@ -558,7 +558,7 @@ describe('Reset password loop', () => {
     chai.expect(create.body.data).to.have.property('uid');
 
     const res = await request(app)
-      .post('/api/admin/auth/forgot')
+      .post('/api/auth/forgot')
       .set('Accept', 'application/json')
       .send({ email: userEmail });
 

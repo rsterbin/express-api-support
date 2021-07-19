@@ -83,7 +83,7 @@ class TestHelpers {
     }
   }
 
-  async installTables(checkTable = 'admin_users') {
+  async installTables(checkTable = 'users') {
     try {
       const sql = support.generateSql();
       await support.context.database.query(sql);
@@ -94,13 +94,13 @@ class TestHelpers {
     }
   }
 
-  async bootstrapUser(email, password, extra = {}, table = 'admin_users') {
-    if (!support.featureNames().includes('adminAuth')) {
-      throw new Error('Admin auth feature is not initialized');
+  async bootstrapUser(email, password, extra = {}, table = 'users') {
+    if (!support.featureNames().includes('auth')) {
+      throw new Error('Auth feature is not initialized');
     }
-    const args = { 'adminAuth-email': email, 'adminAuth-password': password };
+    const args = { 'auth-email': email, 'auth-password': password };
     for (const key in extra) {
-      args['adminAuth-' + key] = extra[key];
+      args['auth-' + key] = extra[key];
     }
     await support.bootstrap(args);
     const sth = await support.context.database.query('SELECT * FROM ' + table + ' ORDER BY user_id');

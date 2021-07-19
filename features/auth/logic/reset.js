@@ -1,12 +1,12 @@
 const LogicBase = require('./base'); 
 
-class AdminAuthLogicReset extends LogicBase {
+class AuthLogicReset extends LogicBase {
   constructor() { super(); }
 
   setup() {
     const prefix = this.feature.getConfigValue('tablePrefix');
-    this.tableTokens = prefix + 'admin_reset_tokens';
-    this.tableUsers = prefix + 'admin_users';
+    this.tableTokens = prefix + 'reset_tokens';
+    this.tableUsers = prefix + 'users';
     this.tokenLifetime = this.feature.getConfigValue('resetTokenLifetime') + ' seconds';
     this.resetLink = this.feature.getSystemValue('clientUrl') + this.feature.getConfigValue('clientResetLink');
     this.tokenStyle = this.feature.getConfigValue('resetTokenStyle');
@@ -141,4 +141,4 @@ class AdminAuthLogicReset extends LogicBase {
 
 }
 
-module.exports = new AdminAuthLogicReset();
+module.exports = new AuthLogicReset();

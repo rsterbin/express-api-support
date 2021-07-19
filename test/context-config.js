@@ -70,7 +70,7 @@ describe('Configuration context module', () => {
     // delete the vars added to the environment for tests
     for (const newvar of [
       'API_SITE_NAME',
-      'ADMIN_AUTH_USER_FIELDS',
+      'SUPPORT_AUTH_USER_FIELDS',
       'MYAPP_CUSTOM_STRING',
       'MYAPP_CUSTOM_BOOLEAN',
       'MYAPP_CUSTOM_VALIDATED',
@@ -85,16 +85,18 @@ describe('Configuration context module', () => {
   it('should pick up config values via the environment', async function () {
 
     process.env.API_SITE_NAME = 'Test Site Name';
-    process.env.ADMIN_AUTH_USER_FIELDS = '[{"key":"testKey","column":"test_col","pgtype":"text"}]';
+    process.env.SUPPORT_AUTH_USER_FIELDS = '[{"key":"testKey","column":"test_col","pgtype":"text"}]';
 
     const app = express();
-    const support = this.test.helper.initSupport([ 'adminAuth' ], { ...NEED, database: true, mailer: true });
+    const support = this.test.helper.initSupport([ 'auth' ], { ...NEED, database: true, mailer: true }, {
+      auth: { matchSection: '^/admin', authMountPoint: '/api/admin/auth' }
+    });
     app.use(express.json());
     support.middleware(app);
     app.use('/api/some-endpoint', function(req, res) {
       res.status(200).json({ code: 'SUCCESS', data: {
         siteName: support.getContext('system').setting('siteName'),
-        userFields: support.getFeature('adminAuth').getConfigValue('userFields'),
+        userFields: support.getFeature('auth').getConfigValue('userFields'),
       } });
     });
     support.handlers(app);
