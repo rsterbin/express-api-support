@@ -4,7 +4,7 @@
       "topLevel": false,
       "testLevel": true,
       "onlySuites": [
-        "Admin authentication feature"
+        "Authentication feature"
       ],
       "skipTests": [
         "should complain if no session info is present",
