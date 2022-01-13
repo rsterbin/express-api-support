@@ -4,7 +4,8 @@
       "user": "postgres",
       "host": "localhost",
       "password": "1234",
-      "port": 5432
+      "port": 5432,
+      "database": "postgres"
     },
     "dbNamePrefix": "apisupport_testing_",
     "fallbackDbName": "apisupport_testing_fallback",

@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const pgtools = require('pgtools');
+const pg = require('pg');
 
 const TestHelperBase = require('./Base');
 const LocalConfig = require('../../../data/localConfig.json');
@@ -35,14 +35,28 @@ class FreshDatabaseTestHelper extends TestHelperBase {
     return newName;
   }
 
+  async createDatabase(dbname) {
+    const client = new pg.Client(LocalConfig.database.createConfig);
+    await client.connect();
+    const res = await client.query('CREATE DATABASE ' + dbname);
+    await client.end();
+  }
+
+  async dropDatabase(dbname) {
+    const client = new pg.Client(LocalConfig.database.createConfig);
+    await client.connect();
+    const res = await client.query('DROP DATABASE ' + dbname);
+    await client.end();
+  }
+
   async start() {
     this.current = this.getNewDbName();
-    await pgtools.createdb(LocalConfig.database.createConfig, this.current);
+    await this.createDatabase(this.current);
     TEST_DB_NAMES[this.current] = 'created';
   }
 
   async stop() {
-    await pgtools.dropdb(LocalConfig.database.createConfig, this.current);
+    await this.dropDatabase(this.current);
     TEST_DB_NAMES[this.current] = 'dropped';
     this.current = null;
   }
